@@ -38,6 +38,7 @@ jobs:
           import android.content.Intent;
           import android.net.Uri;
           import androidx.activity.result.ActivityResult;
+          import com.getcapacitor.JSObject;
           import com.getcapacitor.Plugin;
           import com.getcapacitor.PluginCall;
           import com.getcapacitor.PluginMethod;
@@ -46,13 +47,28 @@ jobs:
           import java.io.OutputStream;
           @CapacitorPlugin(name = "SaveFile")
           public class SaveFilePlugin extends Plugin {
-            @PluginMethod
-            public void save(PluginCall call) {
+            private Intent createIntent(PluginCall call, boolean persist) {
               Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
               i.addCategory(Intent.CATEGORY_OPENABLE);
               i.setType("application/json");
               i.putExtra(Intent.EXTRA_TITLE, call.getString("filename", "mi-tacografo.json"));
-              startActivityForResult(call, i, "saveResult");
+              if (persist) i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+              return i;
+            }
+            @PluginMethod
+            public void save(PluginCall call) {
+              startActivityForResult(call, createIntent(call, false), "saveResult");
+            }
+            @PluginMethod
+            public void pick(PluginCall call) {
+              startActivityForResult(call, createIntent(call, true), "pickResult");
+            }
+            @PluginMethod
+            public void write(PluginCall call) {
+              try (OutputStream os = getContext().getContentResolver().openOutputStream(Uri.parse(call.getString("uri", "")), "wt")) {
+                os.write(call.getString("data", "").getBytes("UTF-8"));
+                call.resolve();
+              } catch (Exception e) { call.reject(String.valueOf(e.getMessage())); }
             }
             @ActivityCallback
             private void saveResult(PluginCall call, ActivityResult result) {
@@ -63,6 +79,18 @@ jobs:
                 os.write(call.getString("data", "").getBytes("UTF-8"));
                 call.resolve();
               } catch (Exception e) { call.reject(String.valueOf(e.getMessage())); }
+            }
+            @ActivityCallback
+            private void pickResult(PluginCall call, ActivityResult result) {
+              if (call == null) return;
+              if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) { call.reject("cancelled"); return; }
+              Uri uri = result.getData().getData();
+              try {
+                getContext().getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+              } catch (Exception e) { }
+              JSObject o = new JSObject();
+              o.put("uri", uri.toString());
+              call.resolve(o);
             }
           }
           EOF
@@ -78,6 +106,34 @@ jobs:
             }
           }
           EOF
+      - name: Будильник (дозволи і звук)
+        run: |
+          mkdir -p android/app/src/main/res/raw
+          python3 - <<'PY'
+          import wave, struct, math
+          r = 22050
+          fr = []
+          for rep in range(8):
+              for f, d in ((880, 0.18), (0, 0.07), (880, 0.18), (0, 0.07), (1100, 0.18), (0, 0.32)):
+                  for i in range(int(r * d)):
+                      fr.append(int(20000 * math.sin(2 * math.pi * f * i / r)) if f else 0)
+          w = wave.open('android/app/src/main/res/raw/alarm.wav', 'wb')
+          w.setnchannels(1); w.setsampwidth(2); w.setframerate(r)
+          w.writeframes(b''.join(struct.pack('<h', x) for x in fr)); w.close()
+          p = 'android/app/src/main/AndroidManifest.xml'
+          s = open(p, encoding='utf8').read()
+          perm = ('<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
+                  '    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n'
+                  '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32"/>\n'
+                  '    <uses-permission android:name="android.permission.VIBRATE"/>\n    ')
+          assert '<application' in s
+          s = s.replace('<application', perm + '<application', 1)
+          open(p, 'w', encoding='utf8').write(s)
+          PY
+      - name: Номер версії (щоб APK оновлювався поверх старого)
+        run: |
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"0.4.${{ github.run_number }}\"/" android/app/build.gradle
+          grep -n "versionCode\|versionName" android/app/build.gradle
       - run: npx cap sync android
       - name: Build
         working-directory: android
