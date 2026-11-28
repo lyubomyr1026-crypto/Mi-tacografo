@@ -123,7 +123,7 @@ nav button:nth-child(1).on{box-shadow:inset 0 3px 0 #60a5fa}nav button:nth-child
 </style>
 </head>
 <body>
-<header><h1>Mi Tacógrafo<span class="v">0.4 · b33</span></h1><button id="lg" onclick="setLang()" style="min-height:40px"></button></header>
+<header><h1>Mi Tacógrafo<span class="v">0.4 · b36</span></h1><button id="lg" onclick="setLang()" style="min-height:40px"></button></header>
 <div id="al"></div><main id="m"></main>
 <nav id="nv"></nav>
 <dialog id="dg"></dialog><dialog id="sh"></dialog><datalist id="cl"></datalist><datalist id="pl"></datalist>
@@ -152,6 +152,16 @@ Object.assign(L.uk,{pz:'Пауза',dep:'виїзд',wake:'підйом',lead:'�
 Object.assign(L.es,{pz:'Pausa',dep:'salida',wake:'despertar',lead:'Despertar antes de salir',alr:'Alarma: ¡hora de despertarse!'});
 Object.assign(L.uk,{alman:'Свій час будильника'});
 Object.assign(L.es,{alman:'Hora de alarma propia'});
+Object.assign(L.uk,{aut:'Автозбереження у файл',autOn:'увімкнено',autOff:'вимкнено',autQ:'Вимкнути автозбереження?'});
+Object.assign(L.es,{aut:'Autoguardado en archivo',autOn:'activado',autOff:'desactivado',autQ:'¿Desactivar el autoguardado?'});
+const AU='mitacografo.autouri';let auT=null;
+const natP=()=>{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()?(C.Plugins||{}):null};
+const lsg=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lss=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+function autoSave(){try{if(!lsg(AU))return;clearTimeout(auT);auT=setTimeout(()=>{const P=natP();if(!P||!P.SaveFile)return;P.SaveFile.write({uri:lsg(AU),data:JSON.stringify(S,null,1)}).then(()=>lss(AU+'.t',nowS())).catch(()=>{})},2500)}catch(e){}}
+function autoLbl(){const u=lsg(AU),tm=lsg(AU+'.t');return t('aut')+': '+(u?t('autOn')+(tm?' · '+tm.slice(5,16).replace('T',' '):''):t('autOff'))}
+function autoToggle(){const P=natP();if(!P||!P.SaveFile)return;
+ if(lsg(AU)){if(confirm(t('autQ'))){lss(AU,null);lss(AU+'.t',null)}render();return}
+ P.SaveFile.pick({filename:'mi-tacografo-auto.json'}).then(r=>{lss(AU,r.uri);return P.SaveFile.write({uri:r.uri,data:JSON.stringify(S,null,1)}).then(()=>lss(AU+'.t',nowS()))}).then(()=>render()).catch(e=>{const m=String((e&&e.message)||e);if(!/cancel/i.test(m))alert(m)})}
 Object.assign(L.uk,{tone:'Мелодія будильника',tn0:'Класичний дзвінок',tn1:'Довгий сигнал',tn2:'Мелодія',tn3:'Сирена',tn4:'Тривога'});
 Object.assign(L.es,{tone:'Melodía de la alarma',tn0:'Timbre clásico',tn1:'Pitido largo',tn2:'Melodía',tn3:'Sirena',tn4:'Alerta'});
 Object.assign(L.uk,{rpt:'Заробіток за період',rpd:'День початку (з … по … число)',rkm:'€ за км',rday:'Дієта, € за день',rtr2:'рейсів',rnot:'Входять рейси, розпочаті не раніше початку періоду і завершені не пізніше кінця. Дні рахуються від дати виїзду до дати повернення включно.'});
@@ -169,7 +179,18 @@ Object.assign(L.es,{rtl:'Viaje',offtrip:'Fuera de viaje (en casa)'});
 let S={ver:4,lang:'uk',shifts:[],rests:[],trips:[],adj:{},adjExt:{},dd:{},favC:[],wkAs:{},lastWk:'',alarm:'',alarmH:0,dep:{},depFor:'',lead:60,tone:0,rp:{d:20,mode:'km',rk:0.12,rd:70,nom:0},exp:[]},tab='home',mem=null,newS=null;
 const KEY='mitacografo.v4';
 function load(){try{const r=localStorage.getItem(KEY);if(r)S=norm(JSON.parse(r))}catch(e){if(mem)S=mem}}
-function save(){mem=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}bkSoon()}
+function save(){mem=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}bkSoon();syncAlarm();syncNotes();autoSave()}
+let lastNA=null,lastNN='';
+function syncNotes(){try{const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()))return;const LN=(C.Plugins||{}).LocalNotifications;if(!LN)return;
+ const L=[],now=Date.now(),add=(ms,b)=>{if(ms>now+5000)L.push({ms,b})};
+ try{const a=act();if(a){const dp=curPeriod(),st=dp.start||a.start,k3=redRests(),f=n=>new Date(addMin(st,n)).getTime();add(f(750),t('w13'));add(f(780),k3<3?t('a13r')+' '+k3+'/3':t('o13'));add(f(870),t('w15'));add(f(900),t('o15'))}}catch(e){}
+ try{const w=wkInfo();if(w&&!w.resting&&w.dl){const d=new Date(w.dl).getTime();add(d-864e5,t('wks')+' 24:00 ('+fdt(w.dl)+')');add(d-216e5,t('wks')+' 6:00 ('+fdt(w.dl)+')');add(d,t('wko'))}}catch(e){}
+ L.sort((x,y)=>x.ms-y.ms);const key=JSON.stringify(L);if(key===lastNN)return;lastNN=key;
+ const ids=[];for(let i=11;i<=30;i++)ids.push({id:i});
+ LN.cancel({notifications:ids}).catch(()=>{}).then(()=>{if(!L.length)return;return LN.requestPermissions().then(()=>LN.createChannel({id:'notes',name:'Warnings',importance:4,vibration:true,visibility:1}).catch(()=>{})).then(()=>LN.schedule({notifications:L.slice(0,19).map((x,i)=>({id:11+i,title:'Mi Tacógrafo',body:x.b,channelId:'notes',schedule:{at:new Date(x.ms),allowWhileIdle:true}}))}))}).catch(()=>{})}catch(e){}}
+function syncAlarm(){try{const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()))return;const LN=(C.Plugins||{}).LocalNotifications;if(!LN)return;const key=S.alarm||'';if(key===lastNA)return;lastNA=key;
+ LN.cancel({notifications:[{id:7}]}).catch(()=>{}).then(()=>{if(!key)return;const ms=new Date(key).getTime();if(!(ms>Date.now()))return;
+  return LN.requestPermissions().then(()=>LN.createChannel({id:'alarm2',name:'Alarm',importance:5,sound:'alarm.wav',vibration:true,visibility:1}).catch(()=>{})).then(()=>LN.schedule({notifications:[{id:7,title:t('alr'),body:'Mi Tacógrafo '+key.slice(11,16),channelId:'alarm2',schedule:{at:new Date(ms),allowWhileIdle:true}}]}))}).catch(()=>{})}catch(e){}}
 function norm(o){return{ver:4,lang:o.lang==='es'?'es':'uk',shifts:Array.isArray(o.shifts)?o.shifts:[],rests:Array.isArray(o.rests)?o.rests:[],trips:Array.isArray(o.trips)?o.trips:[],adj:o.adj&&typeof o.adj==='object'?o.adj:{},adjExt:o.adjExt&&typeof o.adjExt==='object'?o.adjExt:{},dd:o.dd&&typeof o.dd==='object'?o.dd:{},adjRed:+o.adjRed||0,favC:Array.isArray(o.favC)?o.favC:[],wkAs:o.wkAs&&typeof o.wkAs==='object'?o.wkAs:{},lastWk:typeof o.lastWk==='string'?o.lastWk:'',alarm:typeof o.alarm==='string'?o.alarm:'',alarmH:+o.alarmH||0,dep:o.dep&&typeof o.dep==='object'?o.dep:{},depFor:typeof o.depFor==='string'?o.depFor:'',lead:typeof o.lead==='number'?o.lead:60,tone:+o.tone||0,rp:Object.assign({d:20,mode:'km',rk:0.12,rd:70,nom:0},o.rp&&typeof o.rp==='object'?o.rp:{}),exp:Array.isArray(o.exp)?o.exp:[]}}
 const t=k=>L[S.lang][k]||k;
 const $=s=>document.querySelector(s);
@@ -504,7 +525,7 @@ function delRest(id){if(confirm(t('delq'))){S.rests=S.rests.filter(r=>r.id!==id)
 
 function hist(){
   const done=S.shifts.filter(s=>s.end),km=done.reduce((n,s)=>n+kmOf(s),0),dr=done.reduce((n,s)=>n+(s.drive||0),0);
-  let h=weekView()+`<div class="card"><div class="mut">${t('all')}</div><div class="row"><div><div class="big">${km}</div><div class="mut">km</div></div><div><div class="big">${hm(dr)}</div><div class="mut">${t('drv')}</div></div></div></div><div class="card"><div class="row"><button class="p" onclick="exp()">${t('exp')}</button><button onclick="$('#fi').click()">${t('imp')}</button></div><div class="row" style="margin-top:10px"><button onclick="txtExp()">${t('cpt')}</button><button onclick="txtImp()">${t('ipt')}</button></div><div class="row" style="margin-top:10px"><button onclick="bkOpen()">☁ ${bkT('Відновити з сервера','Restaurar del servidor')}</button></div><div class="mut" id="bk-s" style="margin-top:8px">${bkText()}</div><input id="fi" type="file" accept=".json,application/json" hidden onchange="imp(this)"></div><h2>${t('shifts')}</h2><div class="card">`;
+  let h=weekView()+`<div class="card"><div class="mut">${t('all')}</div><div class="row"><div><div class="big">${km}</div><div class="mut">km</div></div><div><div class="big">${hm(dr)}</div><div class="mut">${t('drv')}</div></div></div></div><div class="card"><div class="row"><button class="p" onclick="exp()">${t('exp')}</button><button onclick="$('#fi').click()">${t('imp')}</button></div>${natP()&&natP().SaveFile?`<button class="full" style="margin-top:8px" onclick="autoToggle()">${autoLbl()}</button>`:''}<div class="row" style="margin-top:10px"><button onclick="txtExp()">${t('cpt')}</button><button onclick="txtImp()">${t('ipt')}</button></div><div class="row" style="margin-top:10px"><button onclick="bkOpen()">☁ ${bkT('Відновити з сервера','Restaurar del servidor')}</button></div><div class="mut" id="bk-s" style="margin-top:8px">${bkText()}</div><input id="fi" type="file" accept=".json,application/json" hidden onchange="imp(this)"></div><h2>${t('shifts')}</h2><div class="card">`;
   const L2=[...S.shifts].sort((a,b)=>b.start.localeCompare(a.start));
   h+=L2.length?L2.map((s,i)=>tripHdr(L2,i)+`<div class="item" onclick="edit(${s.id})"><div><b>${fdt(s.start)} → ${fdt(s.end)}</b><div class="mut">${esc(s.sc)} ${esc(s.sp)} → ${esc(s.ec)} ${esc(s.ep)}</div>${s.end&&!alloc(s).ok?`<div class="nv">${t('nv')}</div>`:''}</div><div style="text-align:right"><b>${kmOf(s)} km</b><div class="mut">${t('drv')} ${hm(s.drive||0)}${s.end?' · '+t('dur')+' '+hm(dMin(s.start,s.end))+' · '+t('pau')+' '+hm(pauseOf(s).min)+' ('+(s.pause!=null?t('paum'):t('paua'))+')':''}</div></div></div>`).join(''):`<div class="mut">${t('nodata')}</div>`;
   h+=`</div><button class="full" style="margin:0 0 12px" onclick="addShift()">${t('addm')}</button><button class="p full" onclick="repOpen(14)">${t('rep')}</button>`;
@@ -610,7 +631,7 @@ async function bkRestore(d,p){const dg=$('#dg');dg.innerHTML=`<div class="mut">$
   dg.innerHTML=`<h2 style="margin-top:0">☁ ${d}</h2><div>${bkT('Замінити поточні дані копією від ','¿Reemplazar los datos actuales con la copia del ')}${d} (${o.shifts.length} ${bkT('змін','jornadas')})?</div><div class="row" style="margin-top:12px"><button class="p" onclick="bkApply()">${bkT('Відновити','Restaurar')}</button><button onclick="$('#dg').close()">${t('cancel')}</button></div>`}
  catch(e){bkMsg(bkT('Не вдалося відновити копію.','No se pudo restaurar la copia.')+' '+esc(String(e&&e.message||'')))}}
 function bkApply(){const o=bk.pend;if(!o)return;try{localStorage.setItem(KEY+'.backup',JSON.stringify(S))}catch(e){}bk.warn=false;bk.pend=null;S=norm(o);save();$('#dg').close();render()}
-load();initLists();render();pulse();setInterval(alerts,10000);bkInit();
+load();initLists();render();pulse();setInterval(alerts,10000);bkInit();syncAlarm();syncNotes();autoSave();
 </script>
 </body>
 </html>
