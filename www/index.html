@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Tacógrafo 0.4</title>
+<style>
+:root{--bg:#f3f1ec;--card:#fff;--ink:#1b1f26;--mut:#5d6573;--line:#d9d5cb;--acc:#b97a00;--accbg:#ffe6a8;--ok:#1d7a46;--bad:#b3261e;--warn:#9a5b00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b212a;--ink:#f1efe8;--mut:#a3abb8;--line:#2d3542;--acc:#f2b632;--accbg:#3a2f12;--ok:#5ed08f;--bad:#ff8a80;--warn:#ffcc66}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1b212a;--ink:#f1efe8;--mut:#a3abb8;--line:#2d3542;--acc:#f2b632;--accbg:#3a2f12;--ok:#5ed08f;--bad:#ff8a80;--warn:#ffcc66}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:transparent;color:var(--ink);font:17px/1.4 "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;max-width:640px;margin:0 auto;padding-bottom:84px}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
+h1{font-size:22px;margin:0;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+h2{font-size:18px;margin:18px 0 8px}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(to bottom,#0057B7 10%,#FFD500 90%)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(to bottom,#AA151B 0%,#AA151B 12%,#F1BF00 38%,#F1BF00 62%,#AA151B 88%,#AA151B 100%);opacity:0;transition:opacity .9s ease}
+:root[data-lang="es"] body::after{opacity:1}
+main>h2{background:var(--card);display:inline-block;padding:4px 12px;border-radius:10px}
+main>.mut{background:var(--card);padding:8px 12px;border-radius:10px}
+.v{color:rgba(255,255,255,.88);font-size:14px;margin-left:6px;font-weight:400}
+main{padding:0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0}
+.big{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.mut{color:var(--mut);font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 120px}
+label{display:block;font-size:14px;color:var(--mut);margin:8px 0 3px}
+input,select{width:100%;min-height:48px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+button{min-height:52px;font:inherit;font-weight:600;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;cursor:pointer}
+button.p{background:var(--acc);color:#1b1500;border-color:var(--acc)}
+button.d{color:var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.full{width:100%;margin-top:12px}
+.bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.w{background:var(--warn)}.bar i.b{background:var(--bad)}
+.nv{color:var(--warn);font-weight:600}
+.ban{border-radius:10px;padding:12px;margin:10px 0;font-weight:600;background:var(--accbg);color:var(--warn)}
+.ban.b{color:var(--bad)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);max-width:640px;margin:0 auto}
+nav button{flex:1;border:0;border-radius:0;background:none;min-height:60px;font-size:14px;color:var(--mut)}
+nav button.on{color:var(--acc);box-shadow:inset 0 3px 0 var(--acc)}
+.item{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.item:first-child{border-top:0}
+dialog{width:min(600px,94vw);border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);padding:14px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.tag{font-size:13px;color:var(--ok);font-weight:600}
+#sh{width:100%;max-width:640px;margin:auto auto 0;border-radius:16px 16px 0 0;max-height:78vh;overflow:auto;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#al{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;padding:0 14px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 4px;border-top:1px solid var(--line);cursor:pointer;font-size:17px}
+button{transition:transform .3s ease,filter .3s ease}
+button:active{transform:scale(.9);filter:brightness(.85)}
+@keyframes up{from{opacity:0;transform:translateY(55px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes grow{from{width:0}}
+@keyframes pop{0%{transform:scale(.7);opacity:0}55%{transform:scale(1.08);opacity:1}100%{transform:none}}
+@keyframes sheet{from{transform:translateY(180px);opacity:0}to{transform:none;opacity:1}}
+main.in>*{animation:up 1.6s cubic-bezier(.33,1,.68,1) both}
+main.in>*:nth-child(2){animation-delay:.15s}
+main.in>*:nth-child(3){animation-delay:.3s}
+main.in>*:nth-child(4){animation-delay:.45s}
+main.in>*:nth-child(5){animation-delay:.6s}
+main.in>*:nth-child(n+6){animation-delay:.75s}
+main.in .bar i{animation:grow 2.6s cubic-bezier(.33,1,.68,1) .4s both}
+.ban.new{animation:pop 1.7s cubic-bezier(.33,1,.68,1)}
+#sh[open]{animation:sheet 1s cubic-bezier(.33,1,.68,1)}
+@keyframes slR{from{opacity:0;transform:translateX(70px)}to{opacity:1;transform:none}}
+@keyframes slL{from{opacity:0;transform:translateX(-70px)}to{opacity:1;transform:none}}
+main.sr>*{animation:slR .8s cubic-bezier(.33,1,.68,1) both}
+main.sl>*{animation:slL .8s cubic-bezier(.33,1,.68,1) both}
+main.sr .bar i,main.sl .bar i{animation:grow 1.6s cubic-bezier(.33,1,.68,1) .2s both}
+html{overflow-x:hidden}
+.drum{position:relative;display:flex;justify-content:center;align-items:center;gap:8px;margin:12px 0;height:168px}
+.drum .band{position:absolute;left:12%;right:12%;top:56px;height:56px;border-radius:12px;background:var(--accbg);z-index:0}
+.wh{position:relative;z-index:1;height:168px;width:110px;overflow-y:auto;scroll-snap-type:y mandatory;padding:56px 0;scrollbar-width:none;touch-action:pan-y;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.wh::-webkit-scrollbar{display:none}
+.wh div{height:56px;line-height:56px;text-align:center;font-size:30px;font-weight:600;scroll-snap-align:center;font-variant-numeric:tabular-nums}
+.drum .colon{position:relative;z-index:1;font-size:32px;font-weight:700}
+button[id$="-b"]{background:var(--bg);border-color:var(--line);font-weight:400}
+.wk{margin:16px 0 4px;padding:6px 10px;border-radius:8px;background:var(--accbg);font-weight:700;color:var(--ink)}
+.card>.wk:first-child{margin-top:0}
+.mut.okc,.okc{color:var(--ok);font-weight:700}
+.mut.wnc,.wnc{color:#b8860b;font-weight:700}
+.mut.badc,.badc{color:var(--bad);font-weight:700}
+nav button{padding:0 2px;font-size:13px}
+/* b31 skin */
+:root,:root:not([data-theme="light"]),:root[data-theme="dark"]{--bg:#0e1c36;--card:#172a4b;--ink:#f2f5f9;--mut:#a9b8d0;--line:#2d4570;--acc:#4d8dff;--accbg:#1f3a68;--ok:#34d27b;--bad:#ff6b63;--warn:#ffc247}
+h1{font-size:23px}
+header{padding-top:18px}
+.card{border-radius:20px;padding:16px;background:linear-gradient(160deg,#1e3560,#142647);border-color:#305083}
+.big{font-size:32px}
+.hero{background:linear-gradient(160deg,#2e4268,#1d2f52)}
+.hero.on{background:linear-gradient(135deg,#1fb859,#0d6b33);border-color:#3be083;box-shadow:0 6px 22px rgba(31,184,89,.28)}
+.hero .mut{color:rgba(255,255,255,.88);font-size:16px;font-weight:600}
+.hero .big{font-size:54px;color:#fff;letter-spacing:1px}
+.mt-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.lf{background:#0f3d27;border:1px solid #1f7a4b;border-radius:14px;padding:6px 12px;text-align:center;color:var(--ok);line-height:1.15}
+.lf span{display:block;font-size:13px}.lf b{font-size:22px;font-variant-numeric:tabular-nums}
+.lf.w{background:#3d3010;border-color:#8a6a1a;color:var(--warn)}.lf.b{background:#451a18;border-color:#9a3a33;color:var(--bad)}
+.bar{height:12px;border-radius:6px;background:#2c4472}
+.bar i{background:linear-gradient(to right,#22c55e,#4ade80);border-radius:6px}
+.bar i.w{background:linear-gradient(to right,#e0a020,#ffc247)}.bar i.b{background:linear-gradient(to right,#e0453d,#ff7a72)}
+button{border-radius:14px}
+button.p{background:linear-gradient(#27c862,#15803d);color:#fff;border-color:#34d27b;font-size:20px;min-height:58px;box-shadow:0 4px 14px rgba(34,197,94,.25)}
+button.p.red{background:linear-gradient(#f2453d,#b3261e);border-color:#ff6b63;box-shadow:0 4px 14px rgba(242,69,61,.25)}
+nav{background:#122447;border-top:1px solid #2d4570}
+nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px}
+nav .ic{font-size:21px;filter:grayscale(1) brightness(1.3);line-height:1}
+nav button.on{color:var(--acc);box-shadow:none}nav button.on .ic{filter:none}
+.drum .band{background:#24427a}
+.card.mt{border-left:5px solid var(--mc,#34d27b)}
+.card.m9{--mc:#34d27b}.card.m56{--mc:#22d3ee}.card.m90{--mc:#6366f1}
+.card.m56 .bar i:not(.w):not(.b){background:linear-gradient(to right,#06b6d4,#67e8f9)}
+.card.m90 .bar i:not(.w):not(.b){background:linear-gradient(to right,#4f46e5,#818cf8)}
+.card.m56 .lf:not(.w):not(.b){background:#0c3a44;border-color:#1b8aa0;color:#67e8f9}
+.card.m90 .lf:not(.w):not(.b){background:#1e1f4d;border-color:#4f52b8;color:#a5b4fc}
+.card.km{border-left:5px solid #ff9f1c}.card.km .big{color:#ffb454}
+.card.ex{border-left:5px solid #c084fc}.card.ex .big{color:#d8b4fe}
+.wk{background:#1f3a68;border-left:4px solid #3b82f6;color:var(--ink)}
+nav button:nth-child(1).on{color:#60a5fa}nav button:nth-child(2).on{color:#ff9f1c}nav button:nth-child(3).on{color:#34d27b}nav button:nth-child(4).on{color:#c084fc}nav button:nth-child(5).on{color:#22d3ee}
+nav button:nth-child(1).on{box-shadow:inset 0 3px 0 #60a5fa}nav button:nth-child(2).on{box-shadow:inset 0 3px 0 #ff9f1c}nav button:nth-child(3).on{box-shadow:inset 0 3px 0 #34d27b}nav button:nth-child(4).on{box-shadow:inset 0 3px 0 #c084fc}nav button:nth-child(5).on{box-shadow:inset 0 3px 0 #22d3ee}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header><h1>Mi Tacógrafo<span class="v">0.4 · b32</span></h1><button id="lg" onclick="setLang()" style="min-height:40px"></button></header>
+<div id="al"></div><main id="m"></main>
+<nav id="nv"></nav>
+<dialog id="dg"></dialog><dialog id="sh"></dialog><datalist id="cl"></datalist><datalist id="pl"></datalist>
+<script>
+const L={uk:{wk:'Тиждень',wkx:'перетинає межу тижнів (понеділок 00:00)',o15:'Перевищено 15 год від початку доби',w15:'Наближається 15 год від початку доби',a13r:'13 год минули: тільки скорочений відпочинок, використано',to15:'до 15 год лишилось',al9:'До 9 год керування лишилось',al10:'До 10 год керування лишилось',alx:'можна подовжити до 10 год, подовжень використано',rs:'Звичайний добовий відпочинок (3+9 год)',srch:'Пошук або власний варіант',favs:'Обрані (★ — додати або прибрати)',all2:'Усі',favh:'натисніть, щоб додати або прибрати країну з обраних',red:'Скорочених добових відпочинків (9–11 год) між тижневими',redx:'Перевищено ліміт',adjr:'Скорочених відпочинків (9 год) уже використано з останнього тижневого відпочинку',rtr:'Відпочинок між рейсами',hh:'Години',mm:'Хвилини',autop:'Рахувати автоматично',ph:'Відпочинок рахується сам: від завершення зміни до початку наступної. Натисніть на запис, щоб виправити.',rst:'Відпочинок після зміни',ron:'триває',rw:'Тижневий відпочинок (від 45 год)',r11:'Звичайний добовий відпочинок (від 11 год)',r9:'Скорочений добовий відпочинок (9–11 год)',rl:'Менше 9 год: для добового відпочинку недостатньо',ddt:'Керування за добу (вручну)',ddd:'Дата',manual:'вручну',auto:'Рахувати зі змін',ddn:'Якщо внесено вручну, це значення замінює розрахунок зі змін за цю добу.',adj:'Поправка тижнів',adjt:'Введіть години керування, які вже були до початку користування програмою, або виправлення. Вони додаються до підсумків тижня й двох тижнів.',pw:'Попередній тиждень',cw:'Поточний тиждень',adjx:'Подовжень до 10 год уже використано цього тижня',pau:'Відпочинок після зміни',paua:'авто',paum:'вручну',paun:'Не потрібна (керування до 4:30)',paue:'Орієнтовно достатньо (розраховано, не підтверджено)',paug:'Достатньо (введено вручну)',paul:'Недостатньо: потрібно від 0:45',pah:'Відпочинок після зміни, хв (порожньо = від завершення до початку наступної зміни)',addm:'Додати зміну вручну',adjn:'у т. ч. ручна поправка',lastsh:'остання зміна',home:'Головна',trips:'Рейси',rest:'Відпочинок',hist:'Історія',start:'Початок зміни',end:'Завершення зміни',dt:'Дата й час',km:'Пробіг, км',country:'Країна',place:'Місце (необов’язково)',h:'Керування, год',m:'хв',split:'Керування в першу календарну добу, хв',save:'Зберегти',cancel:'Скасувати',del:'Видалити',delq:'Видалити запис? Дію не можна скасувати.',today:'Керування за добу',week:'Тиждень (56 год)',bi:'Два тижні (90 год)',left:'залишок',used:'використано',el:'Від початку зміни',on:'Зміна триває',off:'Зміна не розпочата',nv:'Не перевірено',brk:'Перерви 45 хв',brkn:'Не перевірено: програма їх не відстежує',ext:'Подовжень до 10 год цього тижня',w13:'Наближається 13 год від початку зміни',o13:'Перевищено 13 год від початку зміни',o10:'Добове керування перевищує 10 год',o9:'Добове керування перевищує 9 год',kmt:'Кілометраж сьогодні',trip:'Поточний рейс',notrip:'Рейс не розпочато',dep:'Виїзд із бази',ret:'Повернення на базу',nt:'Новий рейс',tfrom:'з',tto:'до',rf:'Вільний відпочинок',r3:'Відпочинок від 3 год',addr:'Записати відпочинок',all:'За весь час',exp:'Експорт JSON',imp:'Імпорт JSON',impq:'Імпорт замінить усі поточні дані. Продовжити?',impe:'Файл не схожий на резервну копію.',dis:'Допоміжний облік, не заміна офіційного тахографа.',e:'Помилка: перевірте дати та пробіг.',shifts:'Зміни',dur:'Тривалість',drv:'Керування',ed:'Редагувати',nodata:'Записів немає.',unv:'розподіл за днями не вказано',bu:'Копія створена',spl:'Зміна охоплює дві доби: вкажіть керування в першу добу, інакше підсумки тижня будуть неперевірені.'},
+es:{wk:'Semana',wkx:'cruza el límite de semana (lunes 00:00)',o15:'Superadas 15 h desde el inicio de la jornada',w15:'Se acercan 15 h desde el inicio de la jornada',a13r:'Pasadas 13 h: solo descanso reducido, usados',to15:'para 15 h quedan',al9:'Quedan para 9 h de conducción',al10:'Quedan para 10 h de conducción',alx:'puedes ampliar a 10 h, ampliaciones usadas',rs:'Descanso diario regular (3+9 h)',srch:'Buscar o escribir uno propio',favs:'Favoritos (★ — añadir o quitar)',all2:'Todos',favh:'pulsa para añadir o quitar el país de favoritos',red:'Descansos diarios reducidos (9–11 h) entre descansos semanales',redx:'Límite superado',adjr:'Descansos reducidos (9 h) ya usados desde el último descanso semanal',rtr:'Descanso entre viajes',hh:'Horas',mm:'Minutos',autop:'Calcular automáticamente',ph:'El descanso se calcula solo: desde el fin de la jornada hasta el inicio de la siguiente. Toca un registro para corregirlo.',rst:'Descanso tras la jornada',ron:'en curso',rw:'Descanso semanal (45 h o más)',r11:'Descanso diario regular (11 h o más)',r9:'Descanso diario reducido (9–11 h)',rl:'Menos de 9 h: insuficiente para descanso diario',ddt:'Conducción del día (manual)',ddd:'Fecha',manual:'manual',auto:'Calcular desde jornadas',ddn:'Si lo introduces a mano, este valor sustituye el cálculo de las jornadas para ese día.',adj:'Ajuste de semanas',adjt:'Introduce las horas de conducción anteriores al uso de la app o una corrección. Se suman a los totales de la semana y de dos semanas.',pw:'Semana anterior',cw:'Semana actual',adjx:'Ampliaciones a 10 h ya usadas esta semana',pau:'Descanso tras la jornada',paua:'auto',paum:'manual',paun:'No necesaria (conducción hasta 4:30)',paue:'Aproximadamente suficiente (calculado, no verificado)',paug:'Suficiente (introducida manualmente)',paul:'Insuficiente: se requieren 0:45 o más',pah:'Descanso tras la jornada, min (vacío = desde el fin hasta el inicio de la siguiente jornada)',addm:'Añadir jornada manualmente',adjn:'incl. ajuste manual',lastsh:'última jornada',home:'Inicio',trips:'Viajes',rest:'Descanso',hist:'Historial',start:'Inicio de jornada',end:'Fin de jornada',dt:'Fecha y hora',km:'Kilometraje, km',country:'País',place:'Lugar (opcional)',h:'Conducción, h',m:'min',split:'Conducción en el primer día natural, min',save:'Guardar',cancel:'Cancelar',del:'Eliminar',delq:'¿Eliminar el registro? No se puede deshacer.',today:'Conducción del día',week:'Semana (56 h)',bi:'Dos semanas (90 h)',left:'restan',used:'usadas',el:'Desde el inicio de la jornada',on:'Jornada en curso',off:'Jornada no iniciada',nv:'No verificado',brk:'Pausas de 45 min',brkn:'No verificado: la app no las registra',ext:'Ampliaciones a 10 h esta semana',w13:'Se acercan 13 h desde el inicio de la jornada',o13:'Superadas 13 h desde el inicio de la jornada',o10:'La conducción diaria supera 10 h',o9:'La conducción diaria supera 9 h',kmt:'Kilómetros hoy',trip:'Viaje actual',notrip:'Sin viaje iniciado',dep:'Salida de la base',ret:'Regreso a la base',nt:'Nuevo viaje',tfrom:'desde',tto:'hasta',rf:'Descanso libre',r3:'Descanso de 3 h o más',addr:'Registrar descanso',all:'Total histórico',exp:'Exportar JSON',imp:'Importar JSON',impq:'La importación reemplazará todos los datos actuales. ¿Continuar?',impe:'El archivo no parece una copia de seguridad.',dis:'Registro auxiliar, no sustituye al tacógrafo oficial.',e:'Error: revisa fechas y kilometraje.',shifts:'Jornadas',dur:'Duración',drv:'Conducción',ed:'Editar',nodata:'Sin registros.',unv:'sin reparto por días',bu:'Copia creada',spl:'La jornada abarca dos días: indica la conducción del primer día; si no, los totales semanales quedan sin verificar.'}};
+Object.assign(L.uk,{rw:'Тижневий відпочинок (45 год)',r11:'Звичайний добовий відпочинок (11 год)',r9:'Скорочений добовий відпочинок (9 год)',rs:'Звичайний добовий відпочинок (3+9 год)',rl:'Менше 9 год: для добового відпочинку недостатньо'});
+Object.assign(L.es,{rw:'Descanso semanal (45 h)',r11:'Descanso diario regular (11 h)',r9:'Descanso diario reducido (9 h)',rs:'Descanso diario regular (3+9 h)',rl:'Menos de 9 h: insuficiente para descanso diario'});
+Object.assign(L.uk,{rwr:'Скорочений тижневий відпочинок',cmp:'Компенсація скороченого тижневого відпочинку',cmpn:'Боргів немає',cmpd:'Борг',cmpr:'Відпочинок',cmpu:'Компенсувати до',cmpok:'Закрито відпочинком',cmpn2:'Потрібен один відпочинок не менше',cmpo:'Строк минув: компенсацію не знайдено',days:'дн.',wkas:'Зараховано до тижня'});
+Object.assign(L.es,{rwr:'Descanso semanal reducido',cmp:'Compensación del descanso semanal reducido',cmpn:'Sin deudas',cmpd:'Deuda',cmpr:'Descanso',cmpu:'Compensar antes del',cmpok:'Cerrado con el descanso',cmpn2:'Hace falta un solo descanso de al menos',cmpo:'Plazo vencido: no se encontró compensación',days:'d.',wkas:'Contado en la semana'});
+Object.assign(L.uk,{wkd:'Тижневий відпочинок: почати не пізніше',wkn:'Немає даних про останній тижневий відпочинок. Вкажіть його в «Поправці тижнів».',wkr:'Тижневий відпочинок триває',wko:'Тижневий відпочинок: строк минув на',wks:'Тижневий відпочинок: до початку лишилось',wkl:'Лишилось',wki:'Не пізніше за шість 24-годинних періодів від кінця попереднього тижневого відпочинку. Скорочений — від 24 год, звичайний — від 45 год.',wklast:'Кінець останнього тижневого відпочинку (якщо його немає в записах)'});
+Object.assign(L.es,{wkd:'Descanso semanal: empezar a más tardar',wkn:'Sin datos del último descanso semanal. Indícalo en «Ajuste de semanas».',wkr:'Descanso semanal en curso',wko:'Descanso semanal: plazo vencido hace',wks:'Descanso semanal: faltan para empezar',wkl:'Quedan',wki:'A más tardar al final de seis períodos de 24 h desde el fin del descanso semanal anterior. Reducido: desde 24 h; regular: desde 45 h.',wklast:'Fin del último descanso semanal (si no está en los registros)'});
+Object.assign(L.uk,{cpt:'Копіювати копію як текст',ipt:'Імпорт з тексту',cpn:'Натисніть «Копіювати» і вставте текст у нотатки, Telegram чи пошту. Це повна копія ваших записів.',cpb:'Копіювати',cpd:'Скопійовано',cpf:'Не вдалось скопіювати: виділіть текст вручну і скопіюйте',ipn:'Вставте сюди текст копії, збережений раніше.'});
+Object.assign(L.es,{cpt:'Copiar la copia como texto',ipt:'Importar desde texto',cpn:'Pulsa «Copiar» y pega el texto en notas, Telegram o correo. Es una copia completa de tus registros.',cpb:'Copiar',cpd:'Copiado',cpf:'No se pudo copiar: selecciona el texto a mano y cópialo',ipn:'Pega aquí el texto de la copia guardada antes.'});
+Object.assign(L.uk,{expf:'Зберегти файл',exps:'Поділитися'});
+Object.assign(L.es,{expf:'Guardar archivo',exps:'Compartir'});
+Object.assign(L.uk,{expn:'Якщо файл збережено, він у папці Download («Завантаження») на телефоні під іменем:'});
+Object.assign(L.es,{expn:'Si se guardó, está en la carpeta Download (Descargas) del teléfono con el nombre:'});
+Object.assign(L.uk,{cmpn:'Незакритих боргів немає',cmpc:'Закриті борги (вже компенсовано)'});
+Object.assign(L.es,{cmpn:'No hay deudas pendientes',cmpc:'Deudas cerradas (ya compensadas)'});
+Object.assign(L.uk,{rep:'Звіт',repp:'Період',repn:'Змін',repk:'Пробіг',repd:'Керування',repr:'відпочинок після'});
+Object.assign(L.es,{rep:'Informe',repp:'Período',repn:'Jornadas',repk:'Kilometraje',repd:'Conducción',repr:'descanso después'});
+Object.assign(L.uk,{leave:'Коли виїжджати після відпочинку',lend:'кінець зміни',hrs:'год',alrs:'Будильник',alrc:'Скасувати',alr:'Будильник: час виїжджати!',alrx:'Вимкнути будильник'});
+Object.assign(L.es,{leave:'Cuándo salir tras el descanso',lend:'fin de jornada',hrs:'h',alrs:'Alarma',alrc:'Cancelar',alr:'Alarma: ¡es hora de salir!',alrx:'Apagar alarma'});
+Object.assign(L.uk,{pz:'Пауза',dep:'виїзд',wake:'підйом',lead:'За скільки до виїзду будити',alr:'Будильник: час прокидатись!'});
+Object.assign(L.es,{pz:'Pausa',dep:'salida',wake:'despertar',lead:'Despertar antes de salir',alr:'Alarma: ¡hora de despertarse!'});
+Object.assign(L.uk,{alman:'Свій час будильника'});
+Object.assign(L.es,{alman:'Hora de alarma propia'});
+Object.assign(L.uk,{tone:'Мелодія будильника',tn0:'Класичний дзвінок',tn1:'Довгий сигнал',tn2:'Мелодія',tn3:'Сирена',tn4:'Тривога'});
+Object.assign(L.es,{tone:'Melodía de la alarma',tn0:'Timbre clásico',tn1:'Pitido largo',tn2:'Melodía',tn3:'Sirena',tn4:'Alerta'});
+Object.assign(L.uk,{rpt:'Заробіток за період',rpd:'День початку (з … по … число)',rkm:'€ за км',rday:'Дієта, € за день',rtr2:'рейсів',rnot:'Входять рейси, розпочаті не раніше початку періоду і завершені не пізніше кінця. Дні рахуються від дати виїзду до дати повернення включно.'});
+Object.assign(L.es,{rpt:'Ganancias del período',rpd:'Día de inicio (del … al …)',rkm:'€ por km',rday:'Dieta, € por día',rtr2:'viajes',rnot:'Cuentan los viajes iniciados desde el comienzo del período y terminados antes de su fin. Los días se cuentan de la fecha de salida a la de regreso, ambas incluidas.'});
+Object.assign(L.uk,{p3t:'Пауза 3 години',p3n:'Для розділеного відпочинку 3+9 год. Запишіть, коли закінчилась 3-годинна пауза: програма сама візьме три години до цього часу.',p3e:'Пауза закінчилась',p3b:'Записати паузу 3 год'});
+Object.assign(L.es,{p3t:'Pausa de 3 horas',p3n:'Para el descanso fraccionado 3+9 h. Anota cuándo terminó la pausa de 3 h: la app toma las tres horas anteriores.',p3e:'La pausa terminó',p3b:'Registrar pausa de 3 h'});
+Object.assign(L.uk,{nom:'Номіна (ставка), €',exh:'Поточні витрати (з власної кишені)',exd:'Опис (паркінг, меркадо…)',exa:'Додати витрату',tot:'Разом (повна зарплата)',bykm:'за кілометри',byday:'дієта'});
+Object.assign(L.es,{nom:'Nómina (base), €',exh:'Gastos corrientes (de tu bolsillo)',exd:'Descripción (parking, mercado…)',exa:'Añadir gasto',tot:'Total (salario completo)',bykm:'por kilómetros',byday:'dietas'});
+Object.assign(L.uk,{pay:'Зарплата',lbk:'За км',lbd:'Дієта',lbb:'Дієта + км',adjh:'Заповнюється лише один раз, перед першим виїздом, якщо ви починаєте користуватись програмою посеред тижня: впишіть години керування, які вже були цього та минулого тижня. Пізніше додавайте лише ті години, яких бракує: те, що програма бачить зі змін, вона вже рахує сама, і дублювати їх не треба.'});
+Object.assign(L.es,{pay:'Salario',lbk:'Por km',lbd:'Dieta',lbb:'Dieta + km',adjh:'Se rellena solo una vez, antes de la primera salida, si empiezas a usar la app a mitad de semana: anota las horas de conducción que ya llevabas esta semana y la anterior. Más tarde añade solo las horas que te falten: lo que la app ve en las jornadas ya lo cuenta sola y no hay que duplicarlo.'});
+Object.assign(L.uk,{wv:'Перегляд за будь-який тиждень (тиждень і два тижні, що закінчуються цим тижнем)',wvn:'поточний'});
+Object.assign(L.es,{wv:'Ver cualquier semana (la semana y las dos semanas que terminan en ella)',wvn:'actual'});
+Object.assign(L.uk,{rtl:'Рейс',offtrip:'Поза рейсом (вдома)'});
+Object.assign(L.es,{rtl:'Viaje',offtrip:'Fuera de viaje (en casa)'});
+let S={ver:4,lang:'uk',shifts:[],rests:[],trips:[],adj:{},adjExt:{},dd:{},favC:[],wkAs:{},lastWk:'',alarm:'',alarmH:0,dep:{},depFor:'',lead:60,tone:0,rp:{d:20,mode:'km',rk:0.12,rd:70,nom:0},exp:[]},tab='home',mem=null,newS=null;
+const KEY='mitacografo.v4';
+function load(){try{const r=localStorage.getItem(KEY);if(r)S=norm(JSON.parse(r))}catch(e){if(mem)S=mem}}
+function save(){mem=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}bkSoon()}
+function norm(o){return{ver:4,lang:o.lang==='es'?'es':'uk',shifts:Array.isArray(o.shifts)?o.shifts:[],rests:Array.isArray(o.rests)?o.rests:[],trips:Array.isArray(o.trips)?o.trips:[],adj:o.adj&&typeof o.adj==='object'?o.adj:{},adjExt:o.adjExt&&typeof o.adjExt==='object'?o.adjExt:{},dd:o.dd&&typeof o.dd==='object'?o.dd:{},adjRed:+o.adjRed||0,favC:Array.isArray(o.favC)?o.favC:[],wkAs:o.wkAs&&typeof o.wkAs==='object'?o.wkAs:{},lastWk:typeof o.lastWk==='string'?o.lastWk:'',alarm:typeof o.alarm==='string'?o.alarm:'',alarmH:+o.alarmH||0,dep:o.dep&&typeof o.dep==='object'?o.dep:{},depFor:typeof o.depFor==='string'?o.depFor:'',lead:typeof o.lead==='number'?o.lead:60,tone:+o.tone||0,rp:Object.assign({d:20,mode:'km',rk:0.12,rd:70,nom:0},o.rp&&typeof o.rp==='object'?o.rp:{}),exp:Array.isArray(o.exp)?o.exp:[]}}
+const t=k=>L[S.lang][k]||k;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const z=n=>String(n).padStart(2,'0');
+const loc=d=>d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes());
+const nowS=()=>loc(new Date());
+const dk=s=>s.slice(0,10);
+const addD=(k,n)=>{const d=new Date(k+'T12:00');d.setDate(d.getDate()+n);return loc(d).slice(0,10)};
+const mon=k=>addD(k,-((new Date(k+'T12:00').getDay()+6)%7));
+const dMin=(a,b)=>Math.round((new Date(b)-new Date(a))/60000);
+const hm=m=>{m=Math.max(0,Math.round(m));return Math.floor(m/60)+':'+z(m%60)};
+const fdt=s=>s?s.slice(8,10)+'.'+s.slice(5,7)+' '+s.slice(11,16):'…';
+const kmOf=s=>s.end&&s.endKm>=s.startKm?s.endKm-s.startKm:0;
+const v=id=>{const e=$('#'+id);return e?e.value:''};
+
+function alloc(s){
+  const a=dk(s.start),b=dk(s.end),d=s.drive||0;
+  if(a===b||!d||mon(a)===mon(b))return{list:[{d:a,min:d}],ok:true};
+  if(s.split!=null&&s.split!==''&&addD(a,1)===b&&s.split<=d)return{list:[{d:a,min:s.split},{d:b,min:d-s.split}],ok:true};
+  return{list:[{d:a,min:d}],ok:false};
+}
+function range(a,b){let min=0,ok=true;const by={};
+  for(const s of S.shifts){if(!s.end)continue;const al=alloc(s);
+    for(const x of al.list)by[x.d]=(by[x.d]||0)+x.min;
+    if(!al.ok)for(let d=dk(s.start);d<=dk(s.end);d=addD(d,1))by['!'+d]=1}
+  for(let d=a;d<=b;d=addD(d,1)){min+=by[d]||0;if(by['!'+d])ok=false}
+  return{min,ok}}
+const act=()=>S.shifts.find(s=>!s.end);
+function dayForm(k){const m=S.dd[k]!=null?S.dd[k]:range(k,k).min;return `<div class="card"><div class="mut">${t('ddt')}</div>${fld('d-d',t('ddd'),k,'date','onchange="loadDay()"')}<div class="row">${fld('d-h',t('h'),Math.floor(m/60),'number','inputmode="numeric" min="0"')}${fld('d-m',t('m'),m%60,'number','inputmode="numeric" min="0" max="59"')}</div><div class="mut">${t('ddn')}</div><div class="row" style="margin-top:8px"><button class="p" onclick="saveDay()">${t('save')}</button><button onclick="clrDay()">${t('auto')}</button></div></div>`}
+function loadDay(){const k=v('d-d');if(!k)return;const m=S.dd[k]!=null?S.dd[k]:range(k,k).min;$('#d-h').value=Math.floor(m/60);$('#d-m').value=m%60}
+function saveDay(){const k=v('d-d');if(!k)return alert(t('e'));S.dd[k]=Math.max(0,(parseInt(v('d-h'),10)||0)*60+(parseInt(v('d-m'),10)||0));save();render()}
+function clrDay(){const k=v('d-d');if(!k)return;delete S.dd[k];save();render()}
+function groups(){const L2=S.shifts.slice().sort((a,b)=>a.start.localeCompare(b.start)),G=[];for(const s of L2){const g=G[G.length-1],l=g&&g[g.length-1];if(g&&l.end&&dMin(l.end,s.start)<540)g.push(s);else G.push([s])}return G}
+function curPeriod(){const G=groups(),g=G[G.length-1];if(!g)return{min:0,start:null};const l=g[g.length-1];if(l.end&&dMin(l.end,nowS())>=540)return{min:0,start:null};return{min:g.reduce((n,s)=>n+(s.drive||0),0),start:g[0].start}}
+function liveForm(a){const m=a.drive||0;return `<div class="card"><div class="mut">${t('ddt')}</div><div class="row">${fld('d-h',t('hh'),Math.floor(m/60),'number','inputmode="numeric" min="0"')}${fld('d-m',t('mm'),m%60,'number','inputmode="numeric" min="0" max="59"')}</div><button class="p full" style="margin-top:8px" onclick="saveLive()">${t('save')}</button></div>`}
+function saveLive(){const a=act();if(!a)return;a.drive=Math.max(0,(parseInt(v('d-h'),10)||0)*60+(parseInt(v('d-m'),10)||0));save();render()}
+function redRests(){const L2=S.shifts.filter(s=>s.end).sort((a,b)=>a.start.localeCompare(b.start));let k=0,wk=false;
+ for(const s of L2){const n=S.shifts.some(x=>x.start>s.start);if(!n&&s.pause==null)continue;const m=pauseOf(s).min;if(m>=1440){k=0;wk=true}else if(m>=540&&m<660&&!isSplit(s))k++}
+ return k+(wk?0:(S.adjRed||0))}
+function redCard(){const k=redRests();return `<div class="card"><div class="mut">${t('red')}</div><div class="big">${k} / 3</div><div class="mut">${t('left')}: ${Math.max(0,3-k)}${k>3?' · <span class="nv">'+t('redx')+'</span>':''}</div></div>`}
+function isSplit(s){const m=pauseOf(s).min;if(!s.end||m<540||m>=660)return false;const g=groups().find(x=>x.includes(s)),gs=g?g[0].start:s.start;return S.rests.some(r=>dMin(r.start,r.end)>=180&&r.start>=gs&&r.end<=s.end)}
+let lastAl='';
+function beep(){try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.2;o.start();setTimeout(()=>{o.stop();c.close()},500)}catch(e){}}
+function alerts(){const box=$('#al');if(!box)return;const a=act();let m=[],key='';
+ if(a){const dp=curPeriod(),e=dMin(dp.start||a.start,nowS()),dr=dp.min,ws=mon(nowS().slice(0,10));
+  let ext=S.adjExt[ws]||0;for(const g of groups()){if(dk(g[0].start)>=ws&&dk(g[0].start)<=addD(ws,6)&&g.reduce((n,s)=>n+(s.drive||0),0)>540)ext++}
+  const k3=redRests();if(e>=900){m.push(['b',t('o15')]);key+='g'}else if(e>=870&&k3<3){m.push(['w',t('w15')+' · '+hm(900-e)]);key+='h'}else if(e>=780){if(k3<3){m.push(['w',t('a13r')+' '+k3+'/3 · '+t('to15')+' '+hm(900-e)]);key+='i'}else{m.push(['b',t('o13')]);key+='a'}}else if(e>=750){m.push(['w',t('w13')+' · '+hm(780-e)]);key+='b'}
+  
+  
+  }
+ {const w=wkInfo();if(w&&!w.resting){if(w.rem<=0){m.push(['b',t('wko')+' '+hm(-w.rem)]);key+='x'}else if(w.rem<=360){m.push(['b',t('wks')+' '+hm(w.rem)+' ('+fdt(w.dl)+')']);key+='y'}else if(w.rem<=1440){m.push(['w',t('wks')+' '+hm(w.rem)+' ('+fdt(w.dl)+')']);key+='z'}}}
+ const al=!!S.alarm&&nowS()>=S.alarm;if(al){m.push(['b',t('alr')]);key+='al'}
+ box.innerHTML=m.map(x=>`<div class="ban${x[0]==='b'?' b':''}${key!==lastAl?' new':''}">${esc(x[1])}</div>`).join('');
+ if(al){playTone(S.tone);box.insertAdjacentHTML('beforeend','<button class="p full" style="margin:0 0 8px" onclick="alarmOff()">'+esc(t('alrx'))+'</button>')}else if(key&&key!==lastAl)beep();lastAl=key}
+function restList(){return S.shifts.filter(s=>s.end).sort((a,b)=>a.start.localeCompare(b.start)).map(s=>{const p=pauseOf(s),n=S.shifts.filter(x=>x.start>s.start).sort((a,b)=>a.start.localeCompare(b.start))[0];return{id:s.id,st:s.end,en:n?n.start:nowS(),m:p.min,on:p.on}})}
+function debts(){const R=restList(),used=new Set(),out=[];
+ for(const r of R){if(r.m>=1440&&r.m<2700){const D=2700-r.m,d1=dk(r.st),d2=dk(r.en),sp=mon(d2)!==mon(d1),w=(S.wkAs[r.id]&&sp)?mon(d2):mon(d1),dl=addD(w,27);
+  const c=R.find(x=>x.id!==r.id&&!used.has(x.id)&&x.st>=r.en&&x.en<=addD(dl,1)+'T00:00'&&x.m>=540+D&&!(x.m>=1440&&x.m<2700));
+  if(c)used.add(c.id);out.push({r,D,w,dl,c,sp})}}
+ return out}
+function toggleWk(id){S.wkAs[id]=S.wkAs[id]?0:1;save();render()}
+function compCard(){const td=nowS().slice(0,10),dm=k=>k.slice(8)+'.'+k.slice(5,7),L2=debts().filter(d=>!d.c||d.dl>=addD(td,-28));let h=`<div class="card"><div class="mut">${t('cmp')}</div>`;
+ if(!L2.length)h+=`<div class="big" style="font-size:22px">${t('cmpn')}</div>`;
+ else h+=L2.map(d=>{const over=!d.c&&td>d.dl,days=Math.round((new Date(d.dl+'T12:00')-new Date(td+'T12:00'))/864e5);
+  return `<div class="item" style="cursor:default"><div><b>${t('cmpd')} ${hm(d.D)}</b><div class="mut">${t('cmpr')} ${fdt(d.r.st)} → ${fdt(d.r.en)} · ${hm(d.r.m)}</div><div class="mut">${t('cmpu')} ${dm(d.dl)}</div>${d.c?`<div class="mut okc">✓ ${t('cmpok')} ${fdt(d.c.st)} (${hm(d.c.m)})</div>`:`<div class="mut ${over?'badc':'wnc'}">${over?t('cmpo'):t('cmpn2')+' '+hm(540+d.D)+(days>=0?' · '+days+' '+t('days'):'')}</div>`}${d.sp?`<div style="margin-top:6px"><button type="button" style="min-height:36px;padding:2px 10px" onclick="toggleWk(${d.r.id})">↔ ${t('wkas')} ${dm(d.w)}</button></div>`:''}</div></div>`}).join('');
+ return h+'</div>'}
+function wkInfo(){const R=restList(),on=R.find(r=>r.on);if(on&&on.m>=1440)return{resting:true,m:on.m};
+ const done=R.filter(r=>r.m>=1440&&!r.on);let end=done.length?done[done.length-1].en:'';if(S.lastWk&&S.lastWk>end)end=S.lastWk;if(!end)return null;
+ const d=new Date(end);d.setMinutes(d.getMinutes()+8640);const dl=loc(d);return{resting:false,dl,rem:dMin(nowS(),dl),end}}
+function wkCard(){const w=wkInfo();if(!w)return `<div class="card"><div class="mut">${t('wkd')}</div><div class="mut">${t('wkn')}</div></div>`;
+ if(w.resting)return `<div class="card"><div class="mut">${t('wkd')}</div><div class="big okc" style="font-size:24px">${t('wkr')} ${hm(w.m)}</div></div>`;
+ const c=w.rem<=360?'badc':w.rem<=1440?'wnc':'okc';
+ return `<div class="card"><div class="mut">${t('wkd')}</div><div class="big">${fdt(w.dl)}</div><div class="mut ${c}">${w.rem<=0?t('wko')+' '+hm(-w.rem):t('wkl')+' '+hm(w.rem)}</div><div class="mut" style="margin-top:6px">${t('wki')}</div></div>`}
+const TXS='width:100%;height:170px;font-size:12px;margin:8px 0;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px';
+function txtExp(){const dg=$('#dg');dg.innerHTML=`<h2 style="margin-top:0">${t('cpt')}</h2><div class="mut">${t('cpn')}</div><textarea id="tx" readonly style="${TXS}"></textarea><div class="row"><button class="p" onclick="txCopy()">${t('cpb')}</button><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;$('#tx').value=JSON.stringify(S);dg.showModal()}
+function txCopy(){const x=$('#tx');x.removeAttribute('readonly');x.focus();x.select();x.setSelectionRange(0,x.value.length);let ok=false;try{ok=document.execCommand('copy')}catch(e){}x.setAttribute('readonly','');if(ok)alert(t('cpd'));else if(navigator.clipboard)navigator.clipboard.writeText(x.value).then(()=>alert(t('cpd')),()=>alert(t('cpf')));else alert(t('cpf'))}
+function txtImp(){const dg=$('#dg');dg.innerHTML=`<h2 style="margin-top:0">${t('ipt')}</h2><div class="mut">${t('ipn')}</div><textarea id="tx" style="${TXS}"></textarea><div class="row"><button class="p" onclick="txDo()">${t('imp')}</button><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;dg.showModal()}
+function txDo(){try{const o=JSON.parse($('#tx').value);if(!o||!Array.isArray(o.shifts))throw 0;if(!confirm(t('impq')))return;try{localStorage.setItem(KEY+'.backup',JSON.stringify(S))}catch(e){}S=norm(o);save();$('#dg').close();render()}catch(e){alert(t('impe'))}}
+let expD='',expN='';
+function expMenu(data,nm){expD=data;expN=nm;const dg=$('#dg');dg.innerHTML=`<h2 style="margin-top:0">${t('exp')}</h2><div class="row"><button class="p" onclick="txCopy()">${t('cpb')}</button>${navigator.share?`<button onclick="expShare()">${t('exps')}</button>`:''}</div><div id="ex-m" class="mut" style="margin-top:8px;font-weight:700"></div><div class="mut" style="margin-top:10px">${t('cpn')}</div><textarea id="tx" readonly style="${TXS}"></textarea><div class="row"><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;$('#tx').value=data;dg.showModal()}
+function expFile(){const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(expD);a.download=expN;document.body.appendChild(a);a.click();a.remove();const m=$('#ex-m');if(m)m.textContent=t('expn')+' '+expN}
+function expShare(){try{const f=new File([expD],expN,{type:'application/json'}),o=navigator.canShare&&navigator.canShare({files:[f]})?{files:[f],title:expN}:{title:expN,text:expD};navigator.share(o).catch(()=>{})}catch(e){alert(String(e))}}
+function compCard(){const td=nowS().slice(0,10),dm=k=>k.slice(8)+'.'+k.slice(5,7),all=debts().filter(d=>!d.c||d.dl>=addD(td,-28)),op=all.filter(d=>!d.c),cl=all.filter(d=>d.c);
+ const row=d=>{const over=!d.c&&td>d.dl,days=Math.round((new Date(d.dl+'T12:00')-new Date(td+'T12:00'))/864e5);
+  return `<div class="item" style="cursor:default"><div><b>${t('cmpd')} ${hm(d.D)}</b><div class="mut">${t('cmpr')} ${fdt(d.r.st)} → ${fdt(d.r.en)} · ${hm(d.r.m)}</div><div class="mut">${t('cmpu')} ${dm(d.dl)}</div>${d.c?`<div class="mut okc">✓ ${t('cmpok')} ${fdt(d.c.st)} (${hm(d.c.m)})</div>`:`<div class="mut ${over?'badc':'wnc'}">${over?t('cmpo'):t('cmpn2')+' '+hm(540+d.D)+(days>=0?' · '+days+' '+t('days'):'')}</div>`}${d.sp?`<div style="margin-top:6px"><button type="button" style="min-height:36px;padding:2px 10px" onclick="toggleWk(${d.r.id})">↔ ${t('wkas')} ${dm(d.w)}</button></div>`:''}</div></div>`};
+ let h=`<div class="card"><div class="mut">${t('cmp')}</div>`;
+ h+=op.length?op.map(row).join(''):`<div class="big okc" style="font-size:24px">✓ ${t('cmpn')}</div>`;
+ if(cl.length)h+=`<details style="margin-top:10px"><summary class="mut">${t('cmpc')} (${cl.length})</summary>${cl.map(row).join('')}</details>`;
+ return h+'</div>'}
+function repText(d){const c=d?loc(new Date(Date.now()-d*864e5)):'',L2=S.shifts.filter(s=>s.end&&s.start>=c).sort((a,b)=>a.start.localeCompare(b.start)),km=L2.reduce((n,s)=>n+kmOf(s),0),dr=L2.reduce((n,s)=>n+(s.drive||0),0);
+ let o=`Mi Tacógrafo — ${t('rep')}\n${t('repp')}: ${d?d+' '+t('days'):t('all')}\n${t('repn')}: ${L2.length} · ${t('repk')}: ${km} km · ${t('repd')}: ${hm(dr)}\n\n`;
+ L2.forEach(s=>{o+=`${fdt(s.start)} → ${fdt(s.end)} | ${kmOf(s)} km | ${hm(s.drive||0)} | ${s.sc||''} ${s.sp||''} → ${s.ec||''} ${s.ep||''} | ${t('repr')} ${hm(pauseOf(s).min)}\n`});return o}
+function repOpen(d){const dg=$('#dg');dg.innerHTML=`<h2 style="margin-top:0">${t('rep')}</h2><div class="row">${[7,14,30,0].map(x=>`<button type="button" onclick="repOpen(${x})"${x===d?' class="p"':''}>${x?x+' '+t('days'):t('all')}</button>`).join('')}</div><textarea id="tx" readonly style="${TXS};height:260px"></textarea><div class="row"><button class="p" onclick="txCopy()">${t('cpb')}</button><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;$('#tx').value=repText(d);if(!dg.open)dg.showModal()}
+function leaveCard(){if(act())return '';const s=S.shifts.filter(x=>x.end).sort((a,b)=>b.end.localeCompare(a.end))[0];if(!s)return '';
+ const at=h=>{const d=new Date(s.end);d.setMinutes(d.getMinutes()+h*60);return loc(d)};
+ const row=h=>{const x=at(h),on=S.alarm===x;return `<div class="item" style="cursor:default"><div><b>${h} ${t('hrs')}</b><div class="big" style="font-size:26px">${fdt(x)}</div></div><div style="align-self:center"><button type="button" onclick="setAlarm('${x}')">⏰ ${on?t('alrc'):t('alrs')}</button></div></div>`};
+ return `<div class="card"><div class="mut">${t('leave')} · ${t('lend')} ${fdt(s.end)}</div>${row(9)}${row(11)}</div>`}
+function setAlarm(x){S.alarm=S.alarm===x?'':x;save();render()}
+function alarmOff(){S.alarm='';save();render()}
+function tmS(x){return x.slice(0,10)===nowS().slice(0,10)?x.slice(11):fdt(x)}
+function addMin(s,n){const d=new Date(s);d.setMinutes(d.getMinutes()+n);return loc(d)}
+function lastEnd(){return S.shifts.filter(x=>x.end).sort((a,b)=>b.end.localeCompare(a.end))[0]}
+let manAl='';
+function leaveCard(){if(act())return '';const s=lastEnd();if(!s)return '';
+ const row=h=>{const dep=depAt(s,h),on=S.alarmH===h&&S.alarm===dep,ov=S.depFor===s.end&&S.dep[h],pm=dMin(s.end,dep),hh=dep.slice(11,13),mm=dep.slice(14,16),lbl=ov?hm(pm):h+' '+t('hrs'),bad=pm<540?';color:#ef4444':'';
+  return `<div class="item" style="cursor:default"><div><b style="${bad}">${t('pz')} ${lbl}</b><div class="big" style="font-size:24px">${t('dep')} <input type="hidden" id="dp${h}" value=""><input type="hidden" id="dp${h}-d" value=""><input type="hidden" id="dp${h}-h" value="${hh}"><input type="hidden" id="dp${h}-m" value="${mm}"><button type="button" id="dp${h}-b" onclick="openTime('dp${h}')" style="font-size:24px;font-weight:700;min-height:44px;padding:2px 12px">${dep.slice(0,10)===nowS().slice(0,10)?hh+':'+mm:dep.slice(8,10)+'.'+dep.slice(5,7)+' '+hh+':'+mm}</button>${ov?`<button type="button" onclick="depReset(${h})" style="min-height:44px;margin-left:6px">↺</button>`:''}</div></div><div style="align-self:center"><button type="button" onclick="setAlarm(${h})">⏰ ${on?t('alrc'):t('alrs')}</button></div></div>`};
+ return `<div class="card"><div class="mut">${t('leave')} · ${t('lend')} ${fdt(s.end)}</div>${row(9)}${row(11)}${toneRow()}</div>`}
+function depAt(s,h){const ov=S.depFor===s.end&&S.dep[h];if(!ov)return addMin(s.end,h*60);const d=new Date(s.end);d.setHours(+ov.slice(0,2),+ov.slice(3,5),0,0);if(d<=new Date(s.end))d.setDate(d.getDate()+1);return loc(d)}
+function depSet(h){const s=lastEnd();if(!s)return;const hh=v('dp'+h+'-h'),mm=v('dp'+h+'-m');if(hh===''||mm==='')return;if(S.depFor!==s.end){S.dep={};S.depFor=s.end}S.dep[h]=hh+':'+mm;if(S.alarmH===h)S.alarm=depAt(s,h);save();render()}
+function depReset(h){const s=lastEnd();if(!s||S.depFor!==s.end)return;delete S.dep[h];if(S.alarmH===h)S.alarm=depAt(s,h);save();render()}
+function setAlarm(h){const s=lastEnd();if(!s)return;const dep=depAt(s,h);if(S.alarmH===h&&S.alarm===dep){S.alarm='';S.alarmH=0}else{S.alarm=dep;S.alarmH=h}save();render()}
+function setManual(){const x=v('al-m');if(!x)return;manAl=x;S.alarm=x;S.alarmH=0;save();render()}
+function setLead(m){S.lead=Math.max(0,Math.min(600,parseInt(m,10)||0));const s=lastEnd();if(S.alarmH&&s)S.alarm=addMin(s.end,S.alarmH*60-S.lead);save();render()}
+function alarmOff(){S.alarm='';S.alarmH=0;save();render()}
+const TONES=[[880,.15,0,.1,880,.15,0,.1,880,.15,0,.1,880,.15],[660,.6,0,.2,660,.6],[523,.2,659,.2,784,.2,1047,.4,784,.2,659,.2,523,.4],[700,.3,900,.3,700,.3,900,.3,700,.3,900,.3],[1000,.1,0,.05,1000,.1,0,.05,1000,.1,0,.05,1000,.1,0,.05,1000,.1,0,.05,1000,.1]];
+function playTone(i){try{const c=new (window.AudioContext||window.webkitAudioContext)(),q=TONES[i]||TONES[0];let t0=c.currentTime;for(let k=0;k<q.length;k+=2){const f=q[k],d=q[k+1];if(f){const o=c.createOscillator(),g=c.createGain();o.type=i===2?'triangle':'square';o.frequency.value=f;g.gain.setValueAtTime(.0001,t0);g.gain.linearRampToValueAtTime(.3,t0+.02);g.gain.setValueAtTime(.3,t0+d-.03);g.gain.linearRampToValueAtTime(.0001,t0+d);o.connect(g);g.connect(c.destination);o.start(t0);o.stop(t0+d)}t0+=d}setTimeout(()=>c.close(),(t0-c.currentTime)*1000+300)}catch(e){}try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}
+function setTone(i){S.tone=+i||0;save();playTone(S.tone)}
+function toneRow(){return `<div class="mut" style="margin-top:10px">${t('tone')}</div><div class="row" style="flex-wrap:nowrap;gap:6px"><select onchange="setTone(this.value)" style="flex:1 1 0">${TONES.map((_,i)=>`<option value="${i}"${i===S.tone?' selected':''}>${t('tn'+i)}</option>`).join('')}</select><button type="button" style="flex:0 0 64px" onclick="playTone(S.tone)">▶</button></div>`}
+let rpOff=0;
+function repPeriod(){const d=Math.min(28,Math.max(1,+S.rp.d||20)),n=new Date(),m=n.getMonth()-(n.getDate()<d?1:0)+rpOff;return{a:loc(new Date(n.getFullYear(),m,d)).slice(0,10),b:loc(new Date(n.getFullYear(),m+1,d)).slice(0,10)}}
+function setRp(k,v){S.rp[k]=k==='mode'?v:(parseFloat(String(v).replace(',','.'))||0);save();render()}
+function rpGo(n){rpOff+=n;render()}
+function repCard(){const P=repPeriod(),r=S.rp,inn=S.trips.filter(x=>x.end&&dk(x.start)>=P.a&&dk(x.end)<=P.b).sort((a,b)=>a.start.localeCompare(b.start)),dm=k=>k.slice(8)+'.'+k.slice(5,7),
+  dys=x=>Math.round((new Date(dk(x.end))-new Date(dk(x.start)))/864e5)+1,kmT=x=>tripShifts(x).reduce((s,y)=>s+kmOf(y),0),km=inn.reduce((n,x)=>n+kmT(x),0),dd=inn.reduce((n,x)=>n+dys(x),0),isK=r.mode==='km',sum=(isK?km:dd)*(isK?r.rk:r.rd),A='background:var(--accbg);border-color:var(--acc)';
+ return `<div class="card"><div class="mut">${t('rpt')}</div><div class="row" style="flex-wrap:nowrap;gap:6px;align-items:center;margin-top:6px"><button type="button" onclick="rpGo(-1)" style="flex:0 0 56px">‹</button><div style="flex:1;text-align:center"><b>${dm(P.a)} – ${dm(P.b)}</b></div><button type="button" onclick="rpGo(1)" style="flex:0 0 56px">›</button></div>
+ <div class="row" style="margin-top:8px"><div><label>${t('rpd')}</label><input type="number" inputmode="numeric" value="${r.d}" min="1" max="28" onchange="setRp('d',this.value)"></div><div><label>${isK?t('rkm'):t('rday')}</label><input type="number" inputmode="decimal" step="0.01" value="${isK?r.rk:r.rd}" onchange="setRp('${isK?'rk':'rd'}',this.value)"></div></div>
+ <div class="row" style="margin-top:8px"><button type="button" style="${isK?A:''}" onclick="setRp('mode','km')">${t('rkm')}</button><button type="button" style="${isK?'':A}" onclick="setRp('mode','day')">${t('rday')}</button></div>
+ <div class="big" style="margin-top:10px">${sum.toFixed(2)} €</div><div class="mut">${inn.length} ${t('rtr2')} · ${km} km · ${dd} ${t('days')}</div>
+ ${inn.map(x=>`<div class="mut">${fdt(x.start)} → ${fdt(x.end)} · ${kmT(x)} km · ${dys(x)} ${t('days')}</div>`).join('')}<div class="mut" style="margin-top:6px">${t('rnot')}</div></div>`}
+function addExp(){const d=v('xd')||nowS().slice(0,10),a=parseFloat(String(v('xa')).replace(',','.'));if(!(a>0))return alert(t('e'));S.exp.push({id:Date.now(),date:d,desc:v('xt'),amt:a});save();render()}
+function delExp(id){if(confirm(t('delq'))){S.exp=S.exp.filter(x=>x.id!==id);save();render()}}
+function repCard(){const P=repPeriod(),r=S.rp,inn=S.trips.filter(x=>x.end&&dk(x.start)>=P.a&&dk(x.end)<=P.b).sort((a,b)=>a.start.localeCompare(b.start)),dm=k=>k.slice(8)+'.'+k.slice(5,7),
+  dys=x=>Math.round((new Date(dk(x.end))-new Date(dk(x.start)))/864e5)+1,kmT=x=>tripShifts(x).reduce((s,y)=>s+kmOf(y),0),km=inn.reduce((n,x)=>n+kmT(x),0),dd=inn.reduce((n,x)=>n+dys(x),0),isK=r.mode==='km',work=(isK?km:dd)*(isK?r.rk:r.rd),A='background:var(--accbg);border-color:var(--acc)',
+  ex=S.exp.filter(x=>x.date>=P.a&&x.date<=P.b).sort((a,b)=>b.date.localeCompare(a.date)),exT=ex.reduce((n,x)=>n+x.amt,0),nom=+r.nom||0,total=nom+work+exT;
+ return `<div class="card"><div class="mut">${t('rpt')}</div><div class="row" style="flex-wrap:nowrap;gap:6px;align-items:center;margin-top:6px"><button type="button" onclick="rpGo(-1)" style="flex:0 0 56px">‹</button><div style="flex:1;text-align:center"><b>${dm(P.a)} – ${dm(P.b)}</b></div><button type="button" onclick="rpGo(1)" style="flex:0 0 56px">›</button></div>
+ <div class="row" style="margin-top:8px"><div><label>${t('rpd')}</label><input type="number" inputmode="numeric" value="${r.d}" min="1" max="28" onchange="setRp('d',this.value)"></div><div><label>${t('nom')}</label><input type="number" inputmode="decimal" step="0.01" value="${nom||''}" onchange="setRp('nom',this.value)"></div></div>
+ <div class="row" style="margin-top:8px"><button type="button" style="${isK?A:''}" onclick="setRp('mode','km')">${t('rkm')}</button><button type="button" style="${isK?'':A}" onclick="setRp('mode','day')">${t('rday')}</button></div>
+ <div class="row" style="margin-top:8px"><div><label>${isK?t('rkm'):t('rday')}</label><input type="number" inputmode="decimal" step="0.01" value="${isK?r.rk:r.rd}" onchange="setRp('${isK?'rk':'rd'}',this.value)"></div></div>
+ <div class="mut" style="margin-top:12px"><b>${t('exh')}</b></div>
+ <div class="row" style="flex-wrap:nowrap;gap:6px;margin-top:4px"><input id="xt" placeholder="${t('exd')}" style="flex:2 1 0;min-width:0"><input id="xa" type="number" inputmode="decimal" step="0.01" placeholder="€" style="flex:1 1 0;min-width:0"></div>
+ <div class="row" style="margin-top:6px"><input id="xd" type="date" value="${nowS().slice(0,10)}"><button type="button" onclick="addExp()">${t('exa')}</button></div>
+ ${ex.map(x=>`<div class="item" onclick="delExp(${x.id})"><div><b>${esc(x.desc||'—')}</b><div class="mut">${dm(x.date)}</div></div><b>${x.amt.toFixed(2)} €</b></div>`).join('')}
+ <div class="mut" style="margin-top:12px">${t('tot')}</div><div class="big">${total.toFixed(2)} €</div>
+ <div class="mut">${t('nom')}: ${nom.toFixed(2)} · ${isK?t('bykm'):t('byday')}: ${work.toFixed(2)} · ${t('exh')}: ${exT.toFixed(2)}</div>
+ <div class="mut" style="margin-top:8px">${inn.length} ${t('rtr2')} · ${km} km · ${dd} ${t('days')}</div>
+ ${inn.map(x=>`<div class="mut">${fdt(x.start)} → ${fdt(x.end)} · ${kmT(x)} km · ${dys(x)} ${t('days')}</div>`).join('')}<div class="mut" style="margin-top:6px">${t('rnot')}</div></div>`}
+function pay(){return repCard()}
+function adjRow(){return `<div class="row" style="flex-wrap:nowrap;align-items:center;gap:8px;margin:10px 0"><button type="button" onclick="editAdj()" style="flex:1 1 0">${t('adj')}</button><button type="button" aria-label="?" onclick="adjHelp()" style="flex:0 0 48px;border-radius:50%;padding:0;font-weight:700">?</button></div>`}
+function adjHelp(){const dg=$('#dg');dg.innerHTML=`<h2 style="margin-top:0">${t('adj')}</h2><div>${t('adjh')}</div><button type="button" class="p full" onclick="$('#dg').close()">OK</button>`;dg.showModal()}
+function repCard(){const P=repPeriod(),r=S.rp,m=r.mode,inn=S.trips.filter(x=>x.end&&dk(x.start)>=P.a&&dk(x.end)<=P.b).sort((a,b)=>a.start.localeCompare(b.start)),dmf=k=>k.slice(8)+'.'+k.slice(5,7),
+  dys=x=>Math.round((new Date(dk(x.end))-new Date(dk(x.start)))/864e5)+1,kmT=x=>tripShifts(x).reduce((s,y)=>s+kmOf(y),0),km=inn.reduce((n,x)=>n+kmT(x),0),dd=inn.reduce((n,x)=>n+dys(x),0),wd=m==='km'?0:dd*r.rd,wk=m==='day'?0:km*r.rk,A='background:var(--accbg);border-color:var(--acc)',
+  ex=S.exp.filter(x=>x.date>=P.a&&x.date<=P.b).sort((a,b)=>b.date.localeCompare(a.date)),exT=ex.reduce((n,x)=>n+x.amt,0),nom=+r.nom||0,total=nom+wd+wk+exT,
+  rate=(k,l)=>`<div><label>${l}</label><input type="number" inputmode="decimal" step="0.01" value="${r[k]}" onchange="setRp('${k}',this.value)"></div>`,
+  mb=(k,l)=>`<button type="button" style="${m===k?A:''};padding:6px 4px" onclick="setRp('mode','${k}')">${l}</button>`,
+  parts=[t('nom')+': '+nom.toFixed(2)].concat(m!=='km'?[t('byday')+': '+wd.toFixed(2)]:[],m!=='day'?[t('bykm')+': '+wk.toFixed(2)]:[],[t('exh')+': '+exT.toFixed(2)]);
+ return `<div class="card"><div class="mut">${t('rpt')}</div><div class="row" style="flex-wrap:nowrap;gap:6px;align-items:center;margin-top:6px"><button type="button" onclick="rpGo(-1)" style="flex:0 0 56px">‹</button><div style="flex:1;text-align:center"><b>${dmf(P.a)} – ${dmf(P.b)}</b></div><button type="button" onclick="rpGo(1)" style="flex:0 0 56px">›</button></div>
+ <div class="row" style="margin-top:8px"><div><label>${t('rpd')}</label><input type="number" inputmode="numeric" value="${r.d}" min="1" max="28" onchange="setRp('d',this.value)"></div>${rate('nom',t('nom'))}</div>
+ <div class="row" style="margin-top:8px;flex-wrap:nowrap;gap:6px">${mb('km',t('lbk'))}${mb('day',t('lbd'))}${mb('both',t('lbb'))}</div>
+ <div class="row" style="margin-top:8px">${m!=='km'?rate('rd',t('rday')):''}${m!=='day'?rate('rk',t('rkm')):''}</div>
+ <div class="mut" style="margin-top:12px"><b>${t('exh')}</b></div>
+ <div class="row" style="flex-wrap:nowrap;gap:6px;margin-top:4px"><input id="xt" placeholder="${t('exd')}" style="flex:2 1 0;min-width:0"><input id="xa" type="number" inputmode="decimal" step="0.01" placeholder="€" style="flex:1 1 0;min-width:0"></div>
+ <div class="row" style="margin-top:6px"><input id="xd" type="date" value="${nowS().slice(0,10)}"><button type="button" onclick="addExp()">${t('exa')}</button></div>
+ ${ex.map(x=>`<div class="item" onclick="delExp(${x.id})"><div><b>${esc(x.desc||'—')}</b><div class="mut">${dmf(x.date)}</div></div><b>${x.amt.toFixed(2)} €</b></div>`).join('')}
+ <div class="mut" style="margin-top:12px">${t('tot')}</div><div class="big">${total.toFixed(2)} €</div><div class="mut">${parts.join(' · ')}</div>
+ <div class="mut" style="margin-top:8px">${inn.length} ${t('rtr2')} · ${km} km · ${dd} ${t('days')}</div>
+ ${inn.map(x=>`<div class="mut">${fdt(x.start)} → ${fdt(x.end)} · ${kmT(x)} km · ${dys(x)} ${t('days')}</div>`).join('')}<div class="mut" style="margin-top:6px">${t('rnot')}</div></div>`}
+let wvOff=-1;
+function wvGo(n){wvOff=Math.min(0,wvOff+n);render()}
+function weekView(){const td=nowS().slice(0,10),ws=addD(mon(td),wvOff*7),pw=addD(ws,-7),a=weekTot(ws),b=weekTot(pw),bi={min:a.min+b.min,ok:a.ok&&b.ok},f=k=>k.slice(8)+'.'+k.slice(5,7),we=addD(ws,6);
+ return `<div class="card"><div class="mut">${t('wv')}</div><div class="row" style="flex-wrap:nowrap;gap:6px;align-items:center;margin-top:6px"><button type="button" onclick="wvGo(-1)" style="flex:0 0 56px">‹</button><div style="flex:1;text-align:center"><b>${f(ws)} – ${f(we)}</b>${wvOff===0?' ('+t('wvn')+')':''}</div><button type="button" onclick="wvGo(1)" style="flex:0 0 56px">›</button></div></div>`+meter(t('week')+' '+f(ws)+' – '+f(we),a.min,56,a.ok)+meter(t('bi')+' '+f(pw)+' – '+f(we),bi.min,90,bi.ok)}
+function tripOf(s){return S.trips.find(x=>s.start>=x.start&&(!x.end||s.start<=x.end))}
+function tripHdr(L,i){const x=tripOf(L[i]);if(i&&x===tripOf(L[i-1]))return '';const km=x?tripShifts(x).reduce((n,s)=>n+kmOf(s),0):0;return `<div class="wk">${x?t('rtl')+' '+fdt(x.start)+' → '+fdt(x.end)+' · '+km+' km':t('offtrip')}</div>`}
+function weekTot(ws){const r=range(ws,addD(ws,6));return{min:r.min+(S.adj[ws]||0),ok:r.ok}}
+function pauseOf(s){if(s.pause!=null)return{min:s.pause,man:true,on:false};const n=S.shifts.filter(x=>x.start>s.start).sort((a,b)=>a.start.localeCompare(b.start))[0];if(n)return{min:Math.max(0,dMin(s.end,n.start)),man:false,on:false};return{min:Math.max(0,dMin(s.end,nowS())),man:false,on:true}}
+function brkStat(s){const p=pauseOf(s),m=p.min,sp=m<2700&&isSplit(s);const k=m>=2700?'rw':m>=1440?'rwr':m>=660?'r11':sp?'rs':m>=540?'r9':'rl';return{p,k,c:{rw:'okc',rwr:'wnc',r11:'okc',rs:'okc',r9:'wnc',rl:'badc'}[k]}}
+function brkLine(){const s=S.shifts.filter(x=>x.end).sort((a,b)=>b.start.localeCompare(a.start))[0];
+ if(!s)return `<div class="mut" style="margin-top:8px">${t('brk')}: <span class="nv">${t('nv')}</span></div>`;
+ const b=brkStat(s);return `<div class="mut" style="margin-top:8px"><span onclick="editPause(${s.id})" style="text-decoration:underline;cursor:pointer">${t('rst')}: <b>${hm(b.p.min)}</b> ✎</span> ${b.p.man?t('paum'):b.p.on?t('ron'):t('paua')} · <span class="${b.c}">${t(b.k)}</span></div><div class="mut">${t('brk')}: <span class="nv">${t('brkn')}</span></div>`}
+const actTrip=()=>S.trips.find(x=>!x.end);
+
+function meter(label,used,max,ok,note){
+  const p=Math.min(100,used/(max*60)*100),c=used>max*60?'b':p>85?'w':'';
+  return `<div class="card mt m${max}"><div class="mt-h"><div><div class="mut">${label}</div><div class="big">${hm(used)} <span class="mut">/ ${max}:00</span></div></div><div class="lf ${c}"><span>${t('left')}</span><b>${hm(max*60-used)}</b></div></div>
+  <div class="bar"><i class="${c}" style="width:${p}%"></i></div>${ok?'':`<div class="mut"><span class="nv">${t('nv')} (${t('unv')})</span></div>`}${note?`<div class="mut">${note.replace(/^ · /,'')}</div>`:''}</div>`}
+
+function home(){
+  const td=nowS().slice(0,10),ws=mon(td),a=act();
+  const dp=curPeriod(),day={min:dp.min,ok:true},wk=weekTot(ws),pwk=weekTot(addD(ws,-7)),bi={min:wk.min+pwk.min,ok:wk.ok&&pwk.ok};
+  let ext=S.adjExt[ws]||0;for(const g of groups()){if(dk(g[0].start)>=ws&&dk(g[0].start)<=addD(ws,6)&&g.reduce((n,s)=>n+(s.drive||0),0)>540)ext++}
+  let h='';
+  if(a){const el=dMin(dp.start||a.start,nowS());
+    if(false&&el>=780)h+=`<div class="ban b">${t('o13')}</div>`;else if(false&&el>=750)h+=`<div class="ban">${t('w13')}</div>`}
+  if(false&&day.min>600)h+=`<div class="ban b">${t('o10')}</div>`;else if(false&&day.min>540&&ext>2)h+=`<div class="ban b">${t('o9')}</div>`;
+  h+=`<div class="card hero${a?' on':''}"><div class="mut">${a?t('on'):t('off')}</div>`;
+  if(a)h+=`<div class="big" id="el">${hm(dMin(a.start,nowS()))}</div><div class="mut">${t('el')} · ${fdt(a.start)} · ${esc(a.sc)} ${esc(a.sp)}</div>`;
+  h+='</div>';
+  if(a)h+=`<button class="full" style="margin-top:0" onclick="edit(${a.id})">${t('ed')}</button>`;
+  h+=(a?endForm(a):startForm())+meter(t('today')+' (9:00)',day.min,9,day.ok)+(a?liveForm(a):'');
+  h+=`<div class="card ex"><div class="mut">${t('ext')}</div><div class="big">${ext} / 2</div></div>`+leaveCard()+wkCard()+redCard()+compCard();
+  const aw=S.adj[ws]||0,ab=aw+(S.adj[addD(ws,-7)]||0);
+  h+=meter(t('week'),wk.min,56,wk.ok,aw?` · ${t('adjn')}: ${hm(aw)}`:'')+meter(t('bi'),bi.min,90,bi.ok,ab?` · ${t('adjn')}: ${hm(ab)}`:'');
+  h+=adjRow();const kt=S.shifts.filter(s=>dk(s.start)===td).reduce((n,s)=>n+kmOf(s),0);
+  const tr=actTrip(),tk=tr?tripShifts(tr).reduce((n,s)=>n+kmOf(s),0):0;
+  h+=`<div class="card km"><div class="row"><div><div class="mut">${t('kmt')}</div><div class="big">${kt}</div></div><div><div class="mut">${t('trip')}</div><div class="big">${tr?tk:'—'}</div></div></div>
+  ${brkLine()}</div>`;
+  
+  h+=`<p class="mut">${t('dis')}</p>`;return h}
+
+const fld=(id,lbl,val,type,extra)=>type==='datetime-local'?dtF(id,lbl,val):`<div><label for="${id}">${lbl}</label><input id="${id}" type="${type||'text'}" value="${esc(val)}" ${extra||''}></div>`;
+const CC=[['E','Іспанія / España'],['F','Франція / Francia'],['D','Німеччина / Alemania'],['I','Італія / Italia'],['P','Португалія / Portugal'],['B','Бельгія / Bélgica'],['NL','Нідерланди / Países Bajos'],['L','Люксембург'],['CH','Швейцарія / Suiza'],['A','Австрія / Austria'],['PL','Польща / Polonia'],['CZ','Чехія / Chequia'],['SK','Словаччина'],['H','Угорщина'],['SLO','Словенія'],['HR','Хорватія'],['RO','Румунія'],['BG','Болгарія'],['GR','Греція'],['DK','Данія'],['S','Швеція'],['FIN','Фінляндія'],['N','Норвегія'],['IRL','Ірландія'],['GB','Велика Британія'],['LT','Литва'],['LV','Латвія'],['EST','Естонія'],['UA','Україна'],['MA','Марокко / Marruecos'],['AND','Андорра / Andorra']];
+const ES=[['AN','Andalucía'],['AR','Aragón'],['AST','Asturias'],['IB','Illes Balears'],['CN','Canarias'],['CB','Cantabria'],['CM','Castilla-La Mancha'],['CL','Castilla y León'],['CAT','Cataluña'],['CV','Comunitat Valenciana'],['EX','Extremadura'],['GA','Galicia'],['LR','La Rioja'],['M','Madrid'],['MU','Murcia'],['NA','Navarra'],['PV','País Vasco'],['CE','Ceuta'],['ML','Melilla']];
+const chips=id=>S.favC.map(x=>`<button type="button" style="min-height:40px;padding:4px 14px" onclick="pick('${id}','${esc(x)}')">${esc(x)}</button>`).join('');
+function cField(id){return `<div><label for="${id}">${t('country')}</label><div class="row" style="flex-wrap:nowrap"><input id="${id}" list="cl" autocomplete="off" oninput="updPl()"><button type="button" style="flex:0 0 56px;padding:0" onclick="favC('${id}')">★</button></div><div id="${id}-ch" class="row" style="margin-top:6px;gap:6px">${chips(id)}</div><div class="mut">★ ${t('favh')}</div></div>`}
+function pField(id){return `<div><label for="${id}">${t('place')}</label><input id="${id}" list="pl" autocomplete="off"></div>`}
+function favC(id){const c=v(id).trim().toUpperCase();if(!c)return;const i=S.favC.indexOf(c);if(i<0)S.favC.push(c);else S.favC.splice(i,1);save();$('#'+id+'-ch').innerHTML=chips(id)}
+function pick(id,x){$('#'+id).value=x;updPl()}
+function updPl(){const d=$('#pl'),c=v('f-c').trim().toUpperCase();if(!d)return;d.innerHTML=['E','ESPAÑA','ESPANA','SPAIN','ІСПАНІЯ'].includes(c)?ES.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join(''):''}
+function initLists(){$('#cl').innerHTML=CC.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join('')}
+let shT=null;
+function cF(id,val){return `<div><label for="${id}">${t('country')}</label><input id="${id}" value="${esc(val||'')}" readonly placeholder="▾" onclick="openSheet('c')" style="cursor:pointer"></div>`}
+function pF(id,val){return `<div><label for="${id}">${t('place')}</label><input id="${id}" value="${esc(val||'')}" autocomplete="off" onfocus="plF(this)"></div>`}
+function isES(){return ['E','ESPAÑA','ESPANA','SPAIN','ІСПАНІЯ'].includes(v('f-c').trim().toUpperCase())}
+function plF(el){if(isES()){el.blur();openSheet('p')}}
+function openSheet(k){shT=k;const dg=$('#sh');dg.innerHTML=`<div style="font-weight:700;font-size:18px">${t(k==='c'?'country':'place')}</div><input id="sh-q" placeholder="${t('srch')}" oninput="shList()" autocomplete="off" style="margin:8px 0"><div id="sh-l"></div><button type="button" class="full" onclick="$('#sh').close()">${t('cancel')}</button>`;shList();dg.showModal()}
+function shRow(r){return `<div class="opt" data-v="${esc(r[0])}" onclick="shPick(this.dataset.v)"><span><b>${esc(r[0])}</b> ${esc(r[1])}</span>${shT==='c'?`<button type="button" data-v="${esc(r[0])}" style="min-height:40px;padding:0 12px" onclick="event.stopPropagation();shFav(this.dataset.v)">${S.favC.includes(r[0])?'★':'☆'}</button>`:''}</div>`}
+function shList(){const raw=v('sh-q').trim(),q=raw.toLowerCase(),src=shT==='c'?CC:ES,m=r=>!q||r[0].toLowerCase().includes(q)||r[1].toLowerCase().includes(q);let h='';
+ if(shT==='c'){const fv=S.favC.map(c=>CC.find(r=>r[0]===c)||[c,'']).filter(m);if(fv.length)h+=`<div class="mut">★ ${t('favs')}</div>`+fv.map(shRow).join('');h+=`<div class="mut" style="margin-top:8px">${t('all2')}</div>`}
+ h+=src.filter(m).map(shRow).join('');
+ if(raw)h+=`<div class="opt" data-v="${esc(raw)}" onclick="shPick(this.dataset.v)"><b>«${esc(raw)}»</b></div>`;
+ $('#sh-l').innerHTML=h}
+function shPick(x){if(shT==='c'){const old=v('f-c');$('#f-c').value=x;if(old!==x)$('#f-p').value=''}else $('#f-p').value=x;$('#sh').close()}
+function shFav(c){const i=S.favC.indexOf(c);if(i<0)S.favC.push(c);else S.favC.splice(i,1);save();shList()}
+function dtF(id,lbl,val){const d=val?val.slice(0,10):'',h=val?val.slice(11,13):'',m=val?val.slice(14,16):'',opt=(n,sel)=>Array.from({length:n},(_,i)=>`<option${z(i)===sel?' selected':''}>${z(i)}</option>`).join('');
+ return `<div><label>${lbl}</label><input type="hidden" id="${id}" value="${esc(val||'')}"><input type="date" id="${id}-d" value="${d}" onchange="dtSync('${id}')" style="margin-bottom:6px"><div class="row" style="flex-wrap:nowrap;gap:6px"><select id="${id}-h" onchange="dtSync('${id}')" style="flex:1 1 0;min-width:0"><option value=""></option>${opt(24,h)}</select><span style="align-self:center;flex:0 0 auto;font-size:22px">:</span><select id="${id}-m" onchange="dtSync('${id}')" style="flex:1 1 0;min-width:0"><option value=""></option>${opt(60,m)}</select></div></div>`}
+function dtSync(id){const d=v(id+'-d'),h=v(id+'-h'),m=v(id+'-m');$('#'+id).value=d&&h!==''&&m!==''?d+'T'+h+':'+m:'';if(id==='f-dt')chkSplit();if(id==='al-m')manAl=$('#'+id).value;if(id==='dp9'||id==='dp11')depSet(+id.slice(2))}
+function lastKm(){const L2=S.shifts.filter(s=>s.end&&s.endKm!=null).sort((a,b)=>b.end.localeCompare(a.end));return L2.length?L2[0].endKm:''}
+function lastLoc(){const s=S.shifts.filter(x=>x.end).sort((a,b)=>b.end.localeCompare(a.end))[0];return s?{c:s.ec||'',p:s.ep||''}:{c:'',p:''}}
+let durT=['',''],durM=0;
+function durF(h,m,mins,label){return `<div><label>${label}</label><input type="hidden" id="${h}" value="${Math.floor(mins/60)}"><input type="hidden" id="${m}" value="${mins%60}"><button type="button" id="${h}-b" onclick="openDur('${h}','${m}')" style="width:100%;font-size:26px;min-height:60px">${hm(mins)}</button></div>`}
+function openDur(h,m){durT=[h,m];durM=(parseInt(v(h),10)||0)*60+(parseInt(v(m),10)||0);const dg=$('#sh'),b=(l,n)=>`<button type="button" style="min-height:64px;font-size:22px" onclick="durAdd(${n})">${l}</button>`;
+ dg.innerHTML=`<div style="font-weight:700;font-size:18px">${t('drv')}</div><div class="big" id="du-v" style="text-align:center;margin:12px 0">${hm(durM)}</div><input type="range" id="du-r" min="0" max="720" step="5" value="${Math.min(durM,720)}" oninput="durSet(+this.value)" style="width:100%;height:56px;padding:0;border:0;background:transparent;accent-color:#B97A00;margin:4px 0 10px"><div class="row" style="margin-bottom:8px">${b('−0:01',-1)}${b('+0:01',1)}</div><div class="row" style="margin-bottom:8px">${b('−0:10',-10)}${b('+0:10',10)}</div><div class="row"><button type="button" onclick="durAdd(-durM)">0:00</button><button type="button" class="p" onclick="durDone()">${t('save')}</button></div>`;dg.showModal()}
+function durSet(n){durM=n;$('#du-v').textContent=hm(durM)}
+function durAdd(n){durM=Math.max(0,durM+n);$('#du-v').textContent=hm(durM);const r=$('#du-r');if(r)r.value=Math.min(durM,720)}
+function durDone(){const h=durT[0],m=durT[1];$('#'+h).value=Math.floor(durM/60);$('#'+m).value=durM%60;const bt=$('#'+h+'-b');if(bt)bt.textContent=hm(durM);$('#sh').close();if(h==='d-h')saveLive()}
+function liveForm(a){return `<div class="card">${durF('d-h','d-m',a.drive||0,t('ddt'))}</div>`}
+function openDur(h,m){durT=[h,m];const H=Math.min(15,parseInt(v(h),10)||0),M=Math.min(59,parseInt(v(m),10)||0),dg=$('#sh');durM=H*60+M;
+ const col=(id,n,pad)=>`<div class="wh" id="${id}">${Array.from({length:n},(_,i)=>`<div>${pad?z(i):i}</div>`).join('')}</div>`;
+ dg.innerHTML=`<div style="font-weight:700;font-size:18px">${t('drv')}</div><div class="drum"><div class="band"></div>${col('wh-h',16,false)}<div class="colon">:</div>${col('wh-m',60,true)}</div><div class="row" style="margin-top:12px"><button type="button" onclick="$('#sh').close()">${t('cancel')}</button><button type="button" class="p" onclick="durDone()">${t('save')}</button></div>`;
+ dg.showModal();
+ const hh=$('#wh-h'),mm=$('#wh-m');hh.scrollTop=H*56;mm.scrollTop=M*56;
+ const upd=()=>{durM=Math.min(15,Math.round(hh.scrollTop/56))*60+Math.min(59,Math.round(mm.scrollTop/56))};
+ hh.onscroll=upd;mm.onscroll=upd}
+let timeT='';
+function dtF(id,lbl,val){const d=val?val.slice(0,10):'',h=val?val.slice(11,13):'',m=val?val.slice(14,16):'';
+ return `<div><label>${lbl}</label><input type="hidden" id="${id}" value="${esc(val||'')}"><input type="date" id="${id}-d" value="${d}" onchange="dtSync('${id}')" style="margin-bottom:6px"><input type="hidden" id="${id}-h" value="${h}"><input type="hidden" id="${id}-m" value="${m}"><button type="button" id="${id}-b" onclick="openTime('${id}')" style="width:100%;font-size:26px;min-height:56px">${h&&m?h+':'+m:'--:--'}</button></div>`}
+function openTime(id){const dg=$('#sh'),ch=v(id+'-h'),cm=v(id+'-m'),now=new Date(),H=ch!==''?+ch:now.getHours(),M=cm!==''?+cm:now.getMinutes();timeT=id;
+ const col=(cid,n)=>`<div class="wh" id="${cid}">${Array.from({length:n},(_,i)=>`<div>${z(i)}</div>`).join('')}</div>`;
+ dg.innerHTML=`<div style="font-weight:700;font-size:18px">${t('dt')}</div><div class="drum"><div class="band"></div>${col('wt-h',24)}<div class="colon">:</div>${col('wt-m',60)}</div><div class="row" style="margin-top:12px"><button type="button" onclick="$('#sh').close()">${t('cancel')}</button><button type="button" class="p" onclick="timeDone()">${t('save')}</button></div>`;
+ dg.showModal();$('#wt-h').scrollTop=H*56;$('#wt-m').scrollTop=M*56}
+function timeDone(){const id=timeT,H=Math.min(23,Math.round($('#wt-h').scrollTop/56)),M=Math.min(59,Math.round($('#wt-m').scrollTop/56));$('#'+id+'-h').value=z(H);$('#'+id+'-m').value=z(M);$('#'+id+'-b').textContent=z(H)+':'+z(M);dtSync(id);$('#sh').close()}
+let shC='f-c',shP='f-p';
+function cF(id,val,pid){return `<div><label for="${id}">${t('country')}</label><input id="${id}" value="${esc(val||'')}" readonly placeholder="▾" onclick="openSheet('c','${id}','${pid||'f-p'}')" style="cursor:pointer"></div>`}
+function pF(id,val,cid){return `<div><label for="${id}">${t('place')}</label><input id="${id}" value="${esc(val||'')}" autocomplete="off" onfocus="plF(this,'${cid||'f-c'}')"></div>`}
+function isES(cid){return ['E','ESPAÑA','ESPANA','SPAIN','ІСПАНІЯ'].includes(v(cid||'f-c').trim().toUpperCase())}
+function plF(el,cid){if(isES(cid)){el.blur();openSheet('p',cid,el.id)}}
+function openSheet(k,cid,pid){shT=k;shC=cid||'f-c';shP=pid||'f-p';const dg=$('#sh');dg.innerHTML=`<div style="font-weight:700;font-size:18px">${t(k==='c'?'country':'place')}</div><input id="sh-q" placeholder="${t('srch')}" oninput="shList()" autocomplete="off" style="margin:8px 0"><div id="sh-l"></div><button type="button" class="full" onclick="$('#sh').close()">${t('cancel')}</button>`;shList();dg.showModal()}
+function shPick(x){if(shT==='c'){const old=v(shC);$('#'+shC).value=x;if(old!==x)$('#'+shP).value=''}else $('#'+shP).value=x;$('#sh').close()}
+function startForm(){return `<div class="card"><h2 style="margin-top:0">${t('start')}</h2>
+  ${fld('f-dt',t('dt'),nowS(),'datetime-local')}<div class="row">${fld('f-km',t('km'),lastKm(),'number','inputmode="numeric" min="0"')}${cF('f-c',lastLoc().c)}</div>${pF('f-p',lastLoc().p)}
+  <button class="p full" onclick="doStart()">${t('start')}</button></div>`}
+function endForm(a){return `<div class="card"><h2 style="margin-top:0">${t('end')}</h2>
+  ${fld('f-dt',t('dt'),nowS(),'datetime-local','oninput="chkSplit()"')}${fld('f-km',t('km'),'','number','inputmode="numeric" min="'+a.startKm+'"')}
+  <div class="row">${durF('f-h','f-mi',a.drive||0,t('drv'))}</div>
+  <div id="sp" hidden>${fld('f-sp',t('split'),'','number','inputmode="numeric" min="0"')}<div class="mut">${t('spl')}</div></div>
+  <div class="row">${cF('f-c')}${pF('f-p')}</div>
+  <button class="p full red" onclick="doEnd()">${t('end')}</button></div>`}
+function chkSplit(){const a=act(),e=$('#sp');if(a&&e)e.hidden=dk(v('f-dt'))===dk(a.start)}
+function doStart(){
+  const s=v('f-dt'),k=parseInt(v('f-km'),10);
+  if(!s||isNaN(k)||k<0)return alert(t('e'));
+  const tr=actTrip();
+  S.shifts.push({id:Date.now(),start:s,startKm:k,sc:v('f-c'),sp:v('f-p'),end:null,endKm:null,drive:0,split:null,ec:'',ep:'',tripId:tr?tr.id:null});
+  save();render()}
+function doEnd(){
+  const a=act(),e=v('f-dt'),k=parseInt(v('f-km'),10),d=(parseInt(v('f-h'),10)||0)*60+(parseInt(v('f-mi'),10)||0);
+  if(!e||isNaN(k)||k<a.startKm||e<=a.start)return alert(t('e'));
+  const sp=v('f-sp');
+  Object.assign(a,{end:e,endKm:k,drive:d,split:sp===''?null:parseInt(sp,10),ec:v('f-c'),ep:v('f-p')});if(S.dd[dk(a.start)]!=null&&dk(e)===dk(a.start))S.dd[dk(a.start)]=d;
+  save();render()}
+
+function trips(){
+  const tr=actTrip();
+  let h=`<div class="card"><div class="mut">${t('trip')}</div><div class="big">${tr?fdt(tr.start):t('notrip')}</div>
+  <div class="row" style="margin-top:10px">${tr?`<button class="p" onclick="tripEnd()">${t('ret')}</button><button onclick="tripNew()">${t('nt')}</button>`:`<button class="p" onclick="tripNew()">${t('dep')}</button>`}</div></div><h2>${t('trips')}</h2><div class="card">`;
+  const L2=[...S.trips].reverse();
+  h+=L2.length?L2.map(x=>{const sh=tripShifts(x),km=sh.reduce((n,s)=>n+kmOf(s),0),dr=sh.reduce((n,s)=>n+(s.drive||0),0);
+    return `<div class="item" onclick="editTrip(${x.id})"><div><b>${fdt(x.start)} → ${fdt(x.end)}</b><div class="mut">${sh.length} ${t('shifts').toLowerCase()}${pz(x)}</div></div><div style="text-align:right"><b>${km} km</b><div class="mut">${hm(dr)}</div></div></div>`}).join(''):`<div class="mut">${t('nodata')}</div>`;
+  return h+'</div>'}
+function tripShifts(x){return S.shifts.filter(s=>s.start>=x.start&&(!x.end||s.start<=x.end))}
+function pz(x){if(!x.end)return '';const n=S.trips.filter(y=>y.start>x.start).sort((a,b)=>a.start.localeCompare(b.start))[0];return ' · '+t('rtr')+': '+hm(n?dMin(x.end,n.start):dMin(x.end,nowS()))+(n?'':'…')}
+function tripEnd(){const x=actTrip();if(x){x.end=nowS();save();render()}}
+function tripNew(){tripEnd();S.trips.push({id:Date.now(),start:nowS(),end:null});save();render()}
+function delTrip(id){if(confirm(t('delq'))){S.trips=S.trips.filter(x=>x.id!==id);S.shifts.forEach(s=>{if(s.tripId===id)s.tripId=null});save();render()}}
+
+function pLoc(s,n){const c=s.ec||(n&&n.sc)||'',r=s.ec?(s.ep||''):(n&&n.sp)||'';return [c,r].filter(Boolean).join('-')}
+function autoRests(){const L2=S.shifts.filter(s=>s.end).sort((a,b)=>b.start.localeCompare(a.start));
+ return `<div class="mut">${t('ph')}</div><div class="card">`+(L2.length?L2.map(s=>{const b=brkStat(s),n=S.shifts.filter(x=>x.start>s.start).sort((a,c)=>a.start.localeCompare(c.start))[0];return `<div class="item" onclick="editPause(${s.id})"><div><b>${fdt(s.end)} → ${n?fdt(n.start):'…'}</b><div class="mut ${b.c}">${t(b.k)}</div></div><div style="text-align:right"><b>${hm(b.p.min)}</b><div class="mut">${b.p.on?t('ron'):(esc(pLoc(s,n))||(b.p.man?t('paum'):''))}</div></div></div>`}).join(''):`<div class="mut">${t('nodata')}</div>`)+'</div>'}
+function editPause(id){const s=S.shifts.find(x=>x.id===id),m=pauseOf(s).min,dg=$('#dg');
+ dg.innerHTML=`<h2 style="margin-top:0">${t('rst')}</h2><div class="mut">${t('ph')}</div><div class="row">${fld('p-h',t('hh'),Math.floor(m/60),'number','min="0"')}${fld('p-m',t('mm'),m%60,'number','min="0" max="59"')}</div><div class="row" style="margin-top:12px"><button class="p" onclick="savePause(${id})">${t('save')}</button><button onclick="clrPause(${id})">${t('autop')}</button><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;dg.showModal()}
+function savePause(id){const s=S.shifts.find(x=>x.id===id);s.pause=Math.max(0,(parseInt(v('p-h'),10)||0)*60+(parseInt(v('p-m'),10)||0));save();$('#dg').close();render()}
+function clrPause(id){const s=S.shifts.find(x=>x.id===id);s.pause=null;save();$('#dg').close();render()}
+function wkLbl(w){const e=addD(w,6),f=k=>k.slice(8)+'.'+k.slice(5,7);return t('wk')+' '+f(w)+' – '+f(e)}
+function autoRests(){const L2=S.shifts.filter(s=>s.end).sort((a,b)=>b.start.localeCompare(a.start));let last='',h='';
+ for(const s of L2){const b=brkStat(s),n=S.shifts.filter(x=>x.start>s.start).sort((a,c)=>a.start.localeCompare(c.start))[0],w=mon(dk(s.end)),span=n&&mon(dk(n.start))!==w;
+  if(w!==last){h+=`<div class="wk">${wkLbl(w)}</div>`;last=w}
+  h+=`<div class="item" onclick="editPause(${s.id})"><div><b>${fdt(s.end)} → ${n?fdt(n.start):'…'}</b><div class="mut ${b.c}">${t(b.k)}</div>${span?`<div class="mut">↔ ${t('wkx')}</div>`:''}</div><div style="text-align:right"><b>${hm(b.p.min)}</b><div class="mut">${b.p.on?t('ron'):(esc(pLoc(s,n))||(b.p.man?t('paum'):''))}</div></div></div>`}
+ return `<div class="mut">${t('ph')}</div><div class="card">`+(h||`<div class="mut">${t('nodata')}</div>`)+'</div>'}
+function rest(){
+  let h=autoRests()+`<div class="card"><h2 style="margin-top:0">${t('addr')}</h2><div class="row">${fld('r-a',t('tfrom'),'','datetime-local')}${fld('r-b',t('tto'),'','datetime-local')}</div>
+  <button class="p full" onclick="addRest()">${t('save')}</button></div><div class="card">`;
+  const L2=[...S.rests].sort((a,b)=>b.start.localeCompare(a.start));
+  h+=L2.length?L2.map(r=>{const m=dMin(r.start,r.end);return `<div class="item" onclick="editRest(${r.id})"><div><b>${fdt(r.start)} → ${fdt(r.end)}</b><div class="mut">${m>=180?`<span class="tag">${t('r3')}</span>`:t('rf')}</div></div><b>${hm(m)}</b></div>`}).join(''):`<div class="mut">${t('nodata')}</div>`;
+  return h+'</div>'}
+function rest(){return autoRests()}
+function addPause3(){const e=v('p3');if(!e)return alert(t('e'));S.rests.push({id:Date.now(),start:addMin(e,-180),end:e});save();render()}
+function pause3Card(){const L2=S.rests.filter(r=>dMin(r.start,r.end)>=180).sort((a,b)=>b.start.localeCompare(a.start));
+ return `<div class="card"><h2 style="margin-top:0">${t('p3t')}</h2><div class="mut">${t('p3n')}</div>${fld('p3',t('p3e'),nowS(),'datetime-local')}<button class="p full" onclick="addPause3()">${t('p3b')}</button>${L2.map(r=>`<div class="item" onclick="delRest(${r.id})"><b>${fdt(r.start)} → ${fdt(r.end)}</b><span class="mut">${hm(dMin(r.start,r.end))}</span></div>`).join('')}</div>`}
+function rest(){return pause3Card()+autoRests()}
+function addRest(){const a=v('r-a'),b=v('r-b');if(!a||!b||b<=a)return alert(t('e'));S.rests.push({id:Date.now(),start:a,end:b});save();render()}
+function delRest(id){if(confirm(t('delq'))){S.rests=S.rests.filter(r=>r.id!==id);save();render()}}
+
+function hist(){
+  const done=S.shifts.filter(s=>s.end),km=done.reduce((n,s)=>n+kmOf(s),0),dr=done.reduce((n,s)=>n+(s.drive||0),0);
+  let h=weekView()+`<div class="card"><div class="mut">${t('all')}</div><div class="row"><div><div class="big">${km}</div><div class="mut">km</div></div><div><div class="big">${hm(dr)}</div><div class="mut">${t('drv')}</div></div></div></div><div class="card"><div class="row"><button class="p" onclick="exp()">${t('exp')}</button><button onclick="$('#fi').click()">${t('imp')}</button></div><div class="row" style="margin-top:10px"><button onclick="txtExp()">${t('cpt')}</button><button onclick="txtImp()">${t('ipt')}</button></div><div class="row" style="margin-top:10px"><button onclick="bkOpen()">☁ ${bkT('Відновити з сервера','Restaurar del servidor')}</button></div><div class="mut" id="bk-s" style="margin-top:8px">${bkText()}</div><input id="fi" type="file" accept=".json,application/json" hidden onchange="imp(this)"></div><h2>${t('shifts')}</h2><div class="card">`;
+  const L2=[...S.shifts].sort((a,b)=>b.start.localeCompare(a.start));
+  h+=L2.length?L2.map((s,i)=>tripHdr(L2,i)+`<div class="item" onclick="edit(${s.id})"><div><b>${fdt(s.start)} → ${fdt(s.end)}</b><div class="mut">${esc(s.sc)} ${esc(s.sp)} → ${esc(s.ec)} ${esc(s.ep)}</div>${s.end&&!alloc(s).ok?`<div class="nv">${t('nv')}</div>`:''}</div><div style="text-align:right"><b>${kmOf(s)} km</b><div class="mut">${t('drv')} ${hm(s.drive||0)}${s.end?' · '+t('dur')+' '+hm(dMin(s.start,s.end))+' · '+t('pau')+' '+hm(pauseOf(s).min)+' ('+(s.pause!=null?t('paum'):t('paua'))+')':''}</div></div></div>`).join(''):`<div class="mut">${t('nodata')}</div>`;
+  h+=`</div><button class="full" style="margin:0 0 12px" onclick="addShift()">${t('addm')}</button><button class="p full" onclick="repOpen(14)">${t('rep')}</button>`;
+  return h}
+function edit(id){
+  const s=newS&&newS.id===id?newS:S.shifts.find(x=>x.id===id),d=s.drive||0,dg=$('#dg');
+  dg.innerHTML=`<h2 style="margin-top:0">${t('ed')}</h2>${fld('e-s',t('start'),s.start,'datetime-local')}${fld('e-e',t('end'),s.end||'','datetime-local')}
+  <div class="row">${fld('e-k1',t('km')+' ↑',s.startKm,'number')}${fld('e-k2',t('km')+' ↓',s.endKm==null?'':s.endKm,'number')}</div>
+  <div class="row">${durF('e-h','e-m',d,t('drv'))}</div>${fld('e-sp',t('split'),s.split==null?'':s.split,'number')}${fld('e-pa',t('pah'),s.pause==null?'':s.pause,'number','min="0"')}
+  <div class="row">${cF('e-c1',s.sc,'e-p1')}${pF('e-p1',s.sp,'e-c1')}</div><div class="row">${cF('e-c2',s.ec,'e-p2')}${pF('e-p2',s.ep,'e-c2')}</div>
+  <div class="row" style="margin-top:12px"><button class="p" onclick="saveEdit(${id})">${t('save')}</button><button onclick="$('#dg').close()">${t('cancel')}</button><button class="d" onclick="delShift(${id})">${t('del')}</button></div>`;
+  dg.showModal()}
+function saveEdit(id){
+  const s=newS&&newS.id===id?newS:S.shifts.find(x=>x.id===id),st=v('e-s'),en=v('e-e'),k1=parseInt(v('e-k1'),10),k2=v('e-k2')===''?null:parseInt(v('e-k2'),10);
+  if(!st||isNaN(k1)||(en&&(en<=st||k2==null||k2<k1)))return alert(t('e'));
+  const sp=v('e-sp');
+  Object.assign(s,{start:st,end:en||null,startKm:k1,endKm:en?k2:null,drive:(parseInt(v('e-h'),10)||0)*60+(parseInt(v('e-m'),10)||0),split:sp===''?null:parseInt(sp,10),pause:v('e-pa')===''?null:parseInt(v('e-pa'),10),sc:v('e-c1'),sp:v('e-p1'),ec:v('e-c2'),ep:v('e-p2')});if(newS&&newS.id===id){S.shifts.push(newS);newS=null}
+  save();$('#dg').close();render()}
+function delShift(id){if(confirm(t('delq'))){S.shifts=S.shifts.filter(x=>x.id!==id);save();$('#dg').close();render()}}
+
+function addShift(){newS={id:Date.now(),start:'',end:'',startKm:'',endKm:'',drive:0,split:null,pause:null,sc:'',sp:'',ec:'',ep:'',tripId:null};edit(newS.id)}
+function pair(id,a,b,fn,del){const dg=$('#dg');dg.innerHTML=`<h2 style="margin-top:0">${t('ed')}</h2>${fld(id+'a',t('tfrom'),a,'datetime-local')}${fld(id+'b',t('tto'),b||'','datetime-local')}<div class="row" style="margin-top:12px"><button class="p" onclick="${fn}">${t('save')}</button><button onclick="$('#dg').close()">${t('cancel')}</button><button class="d" onclick="${del}">${t('del')}</button></div>`;dg.showModal()}
+function editTrip(id){const x=S.trips.find(r=>r.id===id);pair('t',x.start,x.end,`saveTrip(${id})`,`delTrip(${id});$('#dg').close()`)}
+function saveTrip(id){const x=S.trips.find(r=>r.id===id),a=v('ta'),b=v('tb');if(!a||(b&&b<=a))return alert(t('e'));x.start=a;x.end=b||null;save();$('#dg').close();render()}
+function editRest(id){const x=S.rests.find(r=>r.id===id);pair('r',x.start,x.end,`saveRest(${id})`,`delRest(${id});$('#dg').close()`)}
+function saveRest(id){const x=S.rests.find(r=>r.id===id),a=v('ra'),b=v('rb');if(!a||!b||b<=a)return alert(t('e'));x.start=a;x.end=b;save();$('#dg').close();render()}
+function editAdj(){const ws=mon(nowS().slice(0,10)),pw=addD(ws,-7),dg=$('#dg'),f=(id,m)=>`<div class="row">${fld(id+'h',t('h'),Math.floor(m/60),'number','min="0"')}${fld(id+'m',t('m'),m%60,'number','min="0" max="59"')}</div>`,dm=k=>k.slice(8)+'.'+k.slice(5,7);
+ dg.innerHTML=`<h2 style="margin-top:0">${t('adj')}</h2><div class="mut">${t('adjt')}</div><h2>${t('pw')} (${dm(pw)})</h2>${f('a1',S.adj[pw]||0)}<h2>${t('cw')} (${dm(ws)})</h2>${f('a2',S.adj[ws]||0)}${fld('a3',t('adjx'),S.adjExt[ws]||0,'number','min="0" max="2"')}${fld('a4',t('adjr'),S.adjRed||0,'number','min="0" max="3"')}${fld('a5',t('wklast'),S.lastWk||'','datetime-local')}<div class="row" style="margin-top:12px"><button class="p" onclick="saveAdj()">${t('save')}</button><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;dg.showModal()}
+function saveAdj(){const ws=mon(nowS().slice(0,10)),pw=addD(ws,-7),g=id=>Math.max(0,(parseInt(v(id+'h'),10)||0)*60+(parseInt(v(id+'m'),10)||0));
+ S.adj[pw]=g('a1');S.adj[ws]=g('a2');S.adjExt[ws]=Math.min(2,Math.max(0,parseInt(v('a3'),10)||0));S.adjRed=Math.min(3,Math.max(0,parseInt(v('a4'),10)||0));S.lastWk=v('a5');save();$('#dg').close();render()}
+function exp(){
+  const nm='mi-tacografo-'+nowS().slice(0,10)+'.json';
+  if(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()){const C=window.Capacitor;C.registerPlugin('Filesystem').writeFile({path:nm,data:JSON.stringify(S,null,1),directory:'CACHE',encoding:'utf8'}).then(r=>C.registerPlugin('Share').share({title:nm,url:r.uri})).catch(e=>alert(String(e)));return}
+  const data=JSON.stringify(S,null,1);
+  if(!(window.claude&&claude.use)){expAlt(data,nm);return}
+  claude.use('downloads').then(d=>{if(!d){expAlt(data,nm);return}
+   return d.save({filename:nm,data}).catch(e=>{if(e&&e.code==='declined')return;expAlt(data,nm)})}).catch(()=>expAlt(data,nm))}
+function expAlt(data,nm){try{const f=new File([data],nm,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:nm}).catch(()=>{});return}}catch(e){}
+ try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);
+  alert(S.lang==='es'?'Se ha intentado guardar '+nm+' en Descargas. Si no aparece, usa el botón de copiar texto.':'Спробував зберегти '+nm+' у Завантаження. Якщо файлу там немає, скористайся кнопкою копіювання тексту.')}
+ catch(e){alert(S.lang==='es'?'No se pudo guardar el archivo. Usa el botón de copiar texto.':'Не вдалося зберегти файл. Скористайся кнопкою копіювання тексту.')}}
+function imp(inp){
+  const f=inp.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||!Array.isArray(o.shifts))throw 0;
+    if(!confirm(t('impq')))return;
+    try{localStorage.setItem(KEY+'.backup',JSON.stringify(S))}catch(e){}
+    S=norm(o);S.lang=S.lang||'uk';save();render()}catch(e){alert(t('impe'))}};
+  r.readAsText(f);inp.value=''}
+function setLang(){S.lang=S.lang==='uk'?'es':'uk';save();render()}
+
+function pulse(d){const m=$('#m'),c=d?(d>0?'sr':'sl'):'in';m.classList.remove('in','sl','sr');void m.offsetWidth;m.classList.add(c);setTimeout(()=>m.classList.remove(c),d?1800:6000)}
+let busy=false;
+function go(k){const T=['home','trips','pay','rest','hist'];if(busy||k===tab)return;const d=T.indexOf(k)>T.indexOf(tab)?1:-1,m=$('#m');busy=true;
+ m.style.transition='transform .3s ease-in,opacity .3s ease-in';m.style.transform='translateX('+(-d*110)+'vw)';m.style.opacity='0';
+ setTimeout(()=>{tab=k;render();scrollTo(0,0);m.style.transition='none';m.style.transform='translateX('+(d*110)+'vw)';void m.offsetWidth;m.style.transition='transform .6s cubic-bezier(.22,1,.36,1),opacity .6s ease-out';m.style.transform='';m.style.opacity='';setTimeout(()=>{m.style.transition='';busy=false},650)},300)}
+function render(){
+  document.documentElement.lang=S.lang;document.documentElement.dataset.lang=S.lang;$('#lg').textContent=S.lang==='uk'?'ES':'UA';
+  const T={home,trips,pay,rest,hist},IC={home:'🏠',trips:'🧭',pay:'💶',rest:'🛏️',hist:'📊'};
+  $('#m').innerHTML=T[tab]();
+  $('#nv').innerHTML=Object.keys(T).map(k=>`<button class="${k===tab?'on':''}" onclick="go('${k}')"><span class="ic">${IC[k]}</span>${t(k)}</button>`).join('');
+  if(tab==='home'){chkSplit();updPl()}alerts()}
+setInterval(()=>{const a=act(),e=$('#el');if(a&&e&&tab==='home')e.textContent=hm(dMin(a.start,nowS()))},30000);
+(()=>{let sx=0,sy=0,on=false,hz=false;const T=['home','trips','pay','rest','hist'];
+ document.addEventListener('touchstart',e=>{const q=e.touches[0];on=e.touches.length===1&&!busy&&!$('#sh').open&&!$('#dg').open&&!e.target.closest('input,select,textarea,button,nav')&&q.clientX>24&&q.clientX<innerWidth-24;sx=q.clientX;sy=q.clientY;hz=false},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!on)return;const q=e.touches[0],dx=q.clientX-sx,dy=q.clientY-sy,m=$('#m');if(!hz&&Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.5)hz=true;if(hz){m.style.transition='none';m.style.transform='translateX('+dx*.45+'px)';m.style.opacity=1-Math.min(Math.abs(dx)/500,.5)}},{passive:true});
+ document.addEventListener('touchend',e=>{if(!on)return;on=false;const dx=e.changedTouches[0].clientX-sx,m=$('#m'),i=T.indexOf(tab),j=i+(dx<0?1:-1);if(hz&&Math.abs(dx)>70&&j>=0&&j<T.length){go(T[j]);return}m.style.transition='transform .35s ease,opacity .35s ease';m.style.transform='';m.style.opacity=''},{passive:true});
+})();
+
+/* ---- автокопія на сервер (db) ---- */
+const bkT=(a,b)=>S.lang==='es'?b:a;
+let bk={db:null,uid:'',t:null,busy:false,last:'',err:'',warn:false};
+const bkP=()=>'data/users/'+bk.uid;
+async function bkInit(){try{if(!(window.claude&&claude.use))return;const u=await claude.use('user'),id=u&&await u.id(),d=await claude.use('db');if(d&&id){bk.db=d;bk.uid=id;bkInfo();bkSoon()}}catch(e){}}
+function bkSoon(){if(!bk.db)return;clearTimeout(bk.t);bk.t=setTimeout(bkRun,4000)}
+function bkText(){if(!bk.db)return '';if(bk.err)return '⚠ '+bk.err;if(bk.warn)return '⚠ '+bkT('Локальних записів значно менше, ніж у копії на сервері. Автокопію призупинено: відновіть копію.','Hay muchos menos registros locales que en la copia del servidor. Copia automática en pausa: restaura la copia.');return '☁ '+(bk.last?bkT('Остання автокопія: ','Última copia automática: ')+fdt(bk.last):bkT('Автокопія на сервер увімкнена','Copia automática en el servidor activada'))}
+function bkInfo(){const e=$('#bk-s');if(e)e.textContent=bkText()}
+async function bkIdx(){const g=await bk.db.doc(bkP()+'/idx').get();return g.exists&&Array.isArray(g.data().list)?g.data().list:[]}
+async function bkRun(){if(!bk.db||bk.busy)return;if(!S.shifts||!S.shifts.length)return;bk.busy=true;
+ try{const idx=await bkIdx(),mx=idx.reduce((m,x)=>Math.max(m,x.n||0),0);
+  if(mx>=10&&S.shifts.length<mx*0.5){bk.warn=true;bkInfo();bk.busy=false;return}
+  bk.warn=false;bk.err='';
+  const json=JSON.stringify(S),day=nowS().slice(0,10),CH=80000,parts=Math.ceil(json.length/CH);
+  for(let i=0;i<parts;i++)await bk.db.doc(bkP()+'/c-'+day+'-'+i).set({s:json.slice(i*CH,(i+1)*CH)});
+  const old=idx.find(x=>x.d===day);
+  if(old)for(let i=parts;i<old.p;i++)await bk.db.doc(bkP()+'/c-'+day+'-'+i).delete().catch(()=>{});
+  const e={d:day,p:parts,n:S.shifts.length,ts:nowS()},L=idx.filter(x=>x.d!==day);L.push(e);L.sort((a,b)=>a.d<b.d?1:-1);
+  const drop=L.splice(14);await bk.db.doc(bkP()+'/idx').set({list:L});
+  for(const x of drop)for(let i=0;i<x.p;i++)await bk.db.doc(bkP()+'/c-'+x.d+'-'+i).delete().catch(()=>{});
+  bk.last=e.ts;bkInfo()}
+ catch(e){bk.err=String(e&&e.message||e);bkInfo()}
+ bk.busy=false}
+function bkMsg(m){const dg=$('#dg');dg.innerHTML=`<div>${m}</div><div class="row" style="margin-top:12px"><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;if(!dg.open)dg.showModal()}
+async function bkOpen(){if(!bk.db){bkMsg(bkT('Копія на сервері доступна лише у сторінці Claude з входом в акаунт.','La copia del servidor solo está disponible en la página de Claude con la sesión iniciada.'));return}
+ try{const L=await bkIdx(),dg=$('#dg');
+  dg.innerHTML=`<h2 style="margin-top:0">☁ ${bkT('Копії на сервері','Copias del servidor')}</h2>`+(L.length?L.map(x=>`<button class="full" style="margin-bottom:8px" onclick="bkRestore('${x.d}',${x.p})">${x.d} · ${x.n} ${bkT('змін','jornadas')}</button>`).join(''):`<div class="mut">${bkT('Копій ще немає.','Aún no hay copias.')}</div>`)+`<div class="row" style="margin-top:12px"><button onclick="$('#dg').close()">${t('cancel')}</button></div>`;dg.showModal()}
+ catch(e){bkMsg(esc(String(e&&e.message||e)))}}
+async function bkRestore(d,p){const dg=$('#dg');dg.innerHTML=`<div class="mut">${bkT('Завантажую…','Cargando…')}</div>`;
+ try{let s='';for(let i=0;i<p;i++){const g=await bk.db.doc(bkP()+'/c-'+d+'-'+i).get();if(!g.exists)throw new Error('part '+i);s+=g.data().s}
+  const o=JSON.parse(s);if(!o||!Array.isArray(o.shifts))throw new Error('format');bk.pend=o;
+  dg.innerHTML=`<h2 style="margin-top:0">☁ ${d}</h2><div>${bkT('Замінити поточні дані копією від ','¿Reemplazar los datos actuales con la copia del ')}${d} (${o.shifts.length} ${bkT('змін','jornadas')})?</div><div class="row" style="margin-top:12px"><button class="p" onclick="bkApply()">${bkT('Відновити','Restaurar')}</button><button onclick="$('#dg').close()">${t('cancel')}</button></div>`}
+ catch(e){bkMsg(bkT('Не вдалося відновити копію.','No se pudo restaurar la copia.')+' '+esc(String(e&&e.message||'')))}}
+function bkApply(){const o=bk.pend;if(!o)return;try{localStorage.setItem(KEY+'.backup',JSON.stringify(S))}catch(e){}bk.warn=false;bk.pend=null;S=norm(o);save();$('#dg').close();render()}
+load();initLists();render();pulse();setInterval(alerts,10000);bkInit();
+</script>
+</body>
+</html>

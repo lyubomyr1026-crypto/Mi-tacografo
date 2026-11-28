@@ -1,0 +1,6 @@
+{
+  "appId": "com.mitacografo.app",
+  "appName": "Mi Tacógrafo",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}
