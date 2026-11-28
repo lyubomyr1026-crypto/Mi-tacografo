@@ -123,7 +123,7 @@ nav button:nth-child(1).on{box-shadow:inset 0 3px 0 #60a5fa}nav button:nth-child
 </style>
 </head>
 <body>
-<header><h1>Mi Tacógrafo<span class="v">0.4 · b36</span></h1><button id="lg" onclick="setLang()" style="min-height:40px"></button></header>
+<header><h1>Mi Tacógrafo<span class="v">0.4 · b37</span></h1><button id="lg" onclick="setLang()" style="min-height:40px"></button></header>
 <div id="al"></div><main id="m"></main>
 <nav id="nv"></nav>
 <dialog id="dg"></dialog><dialog id="sh"></dialog><datalist id="cl"></datalist><datalist id="pl"></datalist>
@@ -411,6 +411,15 @@ function pick(id,x){$('#'+id).value=x;updPl()}
 function updPl(){const d=$('#pl'),c=v('f-c').trim().toUpperCase();if(!d)return;d.innerHTML=['E','ESPAÑA','ESPANA','SPAIN','ІСПАНІЯ'].includes(c)?ES.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join(''):''}
 function initLists(){$('#cl').innerHTML=CC.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join('')}
 let shT=null;
+Object.assign(L.uk,{geoW:'📍 Визначаю місце…',geoH:'ви тут',geoE:'📍 Не вдалося визначити (потрібен інтернет і дозвіл на геолокацію)'});
+Object.assign(L.es,{geoW:'📍 Detectando ubicación…',geoH:'estás aquí',geoE:'📍 No se pudo detectar (hace falta internet y permiso de ubicación)'});
+let geoC=null;
+const ISOM={ES:'E',FR:'F',DE:'D',IT:'I',PT:'P',BE:'B',LU:'L',AT:'A',HU:'H',SI:'SLO',SE:'S',FI:'FIN',NO:'N',IE:'IRL',EE:'EST',AD:'AND'},ESM={VC:'CV',CT:'CAT',MD:'M',AS:'AST',RI:'LR',MC:'MU',NC:'NA'};
+function geoPos(){return new Promise((ok,no)=>{const G=(natP()||{}).Geolocation;if(G)return G.getCurrentPosition({enableHighAccuracy:false,timeout:12000,maximumAge:60000}).then(p=>ok(p.coords)).catch(no);if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>ok(p.coords),no,{timeout:12000,maximumAge:60000});else no('no geo')})}
+function geoDetect(){if(geoC&&Date.now()-geoC.t<600000)return Promise.resolve(geoC);
+ return geoPos().then(c=>fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=5&addressdetails=1&accept-language=en&lat='+c.latitude+'&lon='+c.longitude).then(r=>r.json())).then(j=>{const a=j.address||{},cc=(a.country_code||'').toUpperCase();if(!cc)throw new Error('no country');const code=ISOM[cc]||cc;let p='';if(cc==='ES'){const l=(a['ISO3166-2-lvl4']||'').replace('ES-','');p=ESM[l]||l;if(!ES.some(r=>r[0]===p))p=''}geoC={c:code,p,t:Date.now()};return geoC})}
+function geoRow(k){const g=$('#sh-g');if(!g||!natP())return;if(k==='p'&&!isES(shC))return;g.textContent=t('geoW');
+ geoDetect().then(r=>{const x=k==='c'?r.c:r.p;if(!x){g.textContent='';return}const nm=(k==='c'?CC:ES).find(q=>q[0]===x);g.innerHTML=`<div class="opt" style="border:2px solid var(--ok)" data-v="${esc(x)}" onclick="shPick(this.dataset.v)"><span>📍 <b>${esc(x)}</b> ${esc(nm?nm[1]:'')}</span><span class="mut">${t('geoH')}</span></div>`}).catch(()=>{g.textContent=t('geoE')})}
 function cF(id,val){return `<div><label for="${id}">${t('country')}</label><input id="${id}" value="${esc(val||'')}" readonly placeholder="▾" onclick="openSheet('c')" style="cursor:pointer"></div>`}
 function pF(id,val){return `<div><label for="${id}">${t('place')}</label><input id="${id}" value="${esc(val||'')}" autocomplete="off" onfocus="plF(this)"></div>`}
 function isES(){return ['E','ESPAÑA','ESPANA','SPAIN','ІСПАНІЯ'].includes(v('f-c').trim().toUpperCase())}
@@ -457,7 +466,7 @@ function cF(id,val,pid){return `<div><label for="${id}">${t('country')}</label><
 function pF(id,val,cid){return `<div><label for="${id}">${t('place')}</label><input id="${id}" value="${esc(val||'')}" autocomplete="off" onfocus="plF(this,'${cid||'f-c'}')"></div>`}
 function isES(cid){return ['E','ESPAÑA','ESPANA','SPAIN','ІСПАНІЯ'].includes(v(cid||'f-c').trim().toUpperCase())}
 function plF(el,cid){if(isES(cid)){el.blur();openSheet('p',cid,el.id)}}
-function openSheet(k,cid,pid){shT=k;shC=cid||'f-c';shP=pid||'f-p';const dg=$('#sh');dg.innerHTML=`<div style="font-weight:700;font-size:18px">${t(k==='c'?'country':'place')}</div><input id="sh-q" placeholder="${t('srch')}" oninput="shList()" autocomplete="off" style="margin:8px 0"><div id="sh-l"></div><button type="button" class="full" onclick="$('#sh').close()">${t('cancel')}</button>`;shList();dg.showModal()}
+function openSheet(k,cid,pid){shT=k;shC=cid||'f-c';shP=pid||'f-p';const dg=$('#sh');dg.innerHTML=`<div style="font-weight:700;font-size:18px">${t(k==='c'?'country':'place')}</div><input id="sh-q" placeholder="${t('srch')}" oninput="shList()" autocomplete="off" style="margin:8px 0"><div id="sh-g" class="mut" style="margin-bottom:6px"></div><div id="sh-l"></div><button type="button" class="full" onclick="$('#sh').close()">${t('cancel')}</button>`;shList();dg.showModal();geoRow(k)}
 function shPick(x){if(shT==='c'){const old=v(shC);$('#'+shC).value=x;if(old!==x)$('#'+shP).value=''}else $('#'+shP).value=x;$('#sh').close()}
 function startForm(){return `<div class="card"><h2 style="margin-top:0">${t('start')}</h2>
   ${fld('f-dt',t('dt'),nowS(),'datetime-local')}<div class="row">${fld('f-km',t('km'),lastKm(),'number','inputmode="numeric" min="0"')}${cF('f-c',lastLoc().c)}</div>${pF('f-p',lastLoc().p)}
