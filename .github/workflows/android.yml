@@ -125,7 +125,9 @@ jobs:
           perm = ('<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\n'
                   '    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\n'
                   '    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32"/>\n'
-                  '    <uses-permission android:name="android.permission.VIBRATE"/>\n    ')
+                  '    <uses-permission android:name="android.permission.VIBRATE"/>\n'
+                  '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n'
+                  '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    ')
           assert '<application' in s
           s = s.replace('<application', perm + '<application', 1)
           open(p, 'w', encoding='utf8').write(s)
